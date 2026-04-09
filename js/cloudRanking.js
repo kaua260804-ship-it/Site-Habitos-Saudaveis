@@ -72,4 +72,59 @@ async function salvarUsuarioOnline(usuario) {
 }
 
 // Atualizar ranking na tela
-async function atualizarRankingOnline
+async function atualizarRankingOnline() {
+    const ranking = await buscarRankingOnline();
+    const lista = document.getElementById("rankingList");
+    const usuarioAtual = (typeof getUsuarioAtual === 'function') ? getUsuarioAtual() : null;
+    
+    if (!lista) return;
+    
+    lista.innerHTML = "";
+    
+    if (ranking.length === 0) {
+        lista.innerHTML = '<li>✨ Ninguém no ranking ainda</li>';
+        return;
+    }
+    
+    for (let i = 0; i < Math.min(ranking.length, 20); i++) {
+        const j = ranking[i];
+        const medalha = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}º`;
+        const isCurrentUser = usuarioAtual && usuarioAtual.apelido === j.apelido;
+        
+        const li = document.createElement("li");
+        li.className = isCurrentUser ? "current-player-row" : "";
+        li.innerHTML = `
+            <div class="ranking-position">${medalha}</div>
+            <div class="ranking-info">
+                <strong>${escapeHtml(j.apelido)}</strong>
+                <span class="ranking-name">${escapeHtml(j.nome)}</span>
+                <span class="ranking-age">${j.idade} anos</span>
+            </div>
+            <div class="ranking-points">⭐ ${j.pontos} pts</div>
+        `;
+        lista.appendChild(li);
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return "";
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Função de teste
+async function testarConexao() {
+    console.log("=== TESTE DE CONEXÃO ===");
+    const ranking = await buscarRankingOnline();
+    console.log("Ranking:", ranking);
+    return ranking;
+}
+
+// Exportar funções
+window.buscarRankingOnline = buscarRankingOnline;
+window.salvarUsuarioOnline = salvarUsuarioOnline;
+window.atualizarRankingOnline = atualizarRankingOnline;
+window.testarConexao = testarConexao;
+
+console.log("☁️ CloudRanking.js carregado!");
