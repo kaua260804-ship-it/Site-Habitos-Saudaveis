@@ -4,7 +4,7 @@
 // ============================================
 
 const SHEET_ID = "1sbQFgBWe5JfgCkmHx48_4RXKMlVmwxc1seqAvIFYobc";
-const SHEET_URL = `https://script.google.com/macros/s/AKfycbye8zu47-fE_SUn3e8zoC6rUWL_qbYEZYXB1aTU3M4CGFqDN1YMkUIoSTlIp4ikSd_uCA/exec`;
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/1sbQFgBWe5JfgCkmHx48_4RXKMlVmwxc1seqAvIFYobc/edit?gid=0#gid=0`;
 
 // ⚠️ ATUALIZE A LINHA ABAIXO COM A SUA URL DO APPS SCRIPT (DEPOIS DE REIMPLANTAR)
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXcYHrJCibtHzU5js5QjsJ0geusyQg54bvQICA7cQ3KGuEpG60QshNeHuS6ckIrzx6Yw/exec";
