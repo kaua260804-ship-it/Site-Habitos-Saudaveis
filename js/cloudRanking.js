@@ -3,7 +3,7 @@
 // ============================================
 
 const SHEET_ID = "1sbQFgBWe5JfgCkmHx48_4RXKMlVmwxc1seqAvIFYobc";
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/1sbQFgBWe5JfgCkmHx48_4RXKMlVmwxc1seqAvIFYobc/edit?gid=0#gid=0`;
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMrh75U3Z-Dmr7ZoMX206UOaFi9hVdvpjjhRm2eWCgKGKO2RDhvKjoqgIjN3arG9Vu/exec";
 
 let rankingCache = [];
