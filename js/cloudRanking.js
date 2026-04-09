@@ -1,15 +1,18 @@
 // ============================================
-// RANKING ONLINE - VERSÃO CORRIGIDA
+// RANKING ONLINE - SOMENTE LEITURA
 // ============================================
 
 const SHEET_ID = "1sbQFgBWe5JfgCkmHx48_4RXKMlVmwxc1seqAvIFYobc";
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-PfTd_N-xslN1DNItofZDHTUegYSe1yBdqfhTSSpTy1q-DJLlpUznFt7Y5kgwbeD0jQ/exec";
 
+// Buscar ranking online
 async function buscarRankingOnline() {
     try {
+        console.log("Buscando ranking da planilha...");
         const response = await fetch(SHEET_URL);
         const text = await response.text();
+        
+        // Extrair JSON
         const jsonStart = text.indexOf('(');
         const jsonEnd = text.lastIndexOf(')');
         const jsonText = text.substring(jsonStart + 1, jsonEnd);
@@ -17,6 +20,8 @@ async function buscarRankingOnline() {
         
         const ranking = [];
         const rows = data.table.rows;
+        
+        console.log("Linhas encontradas:", rows.length);
         
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i].c;
@@ -33,39 +38,18 @@ async function buscarRankingOnline() {
         }
         
         ranking.sort((a, b) => b.pontos - a.pontos);
+        console.log("Ranking carregado:", ranking.length, "usuarios");
         return ranking;
+        
     } catch (error) {
-        console.error("Erro:", error);
+        console.error("Erro ao buscar ranking:", error);
         return [];
     }
 }
 
-async function salvarPontuacaoOnline(usuario) {
-    if (!usuario || !usuario.apelido) return false;
-    
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                apelido: usuario.apelido,
-                nome: usuario.nome || "",
-                idade: usuario.idade || 0,
-                pontos: usuario.pontos || 0,
-                quizzes_feitos: usuario.quizzes_feitos || 0
-            })
-        });
-        
-        const resultado = await response.json();
-        console.log("Salvo:", resultado);
-        return resultado.status === "ok";
-    } catch (error) {
-        console.error("Erro ao salvar:", error);
-        return false;
-    }
-}
-
+// Atualizar ranking na tela
 async function atualizarRankingOnline() {
+    console.log("Atualizando ranking online...");
     const ranking = await buscarRankingOnline();
     const lista = document.getElementById("rankingList");
     const usuarioAtual = typeof getUsuarioAtual !== 'undefined' ? getUsuarioAtual() : null;
@@ -75,13 +59,13 @@ async function atualizarRankingOnline() {
     lista.innerHTML = "";
     
     if (ranking.length === 0) {
-        lista.innerHTML = '<li>✨ Ninguém no ranking ainda</li>';
+        lista.innerHTML = '<li>✨ Ninguem no ranking ainda</li>';
         return;
     }
     
     for (let i = 0; i < Math.min(ranking.length, 20); i++) {
         const j = ranking[i];
-        const medalha = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}º`;
+        const medalha = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i+1) + "º";
         const isCurrentUser = usuarioAtual && usuarioAtual.apelido === j.apelido;
         
         const li = document.createElement("li");
@@ -106,26 +90,14 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-async function testarConexao() {
-    console.log("=== TESTANDO CONEXÃO ===");
-    const ranking = await buscarRankingOnline();
-    console.log("Ranking lido:", ranking.length, "usuários");
-    
-    const teste = await salvarPontuacaoOnline({
-        apelido: "teste_" + Date.now(),
-        nome: "Usuário Teste",
-        idade: 10,
-        pontos: 100,
-        quizzes_feitos: 1
-    });
-    console.log("Escrita funcionou?", teste);
-    
-    return { leitura: ranking.length, escrita: teste };
+// Forçar atualização
+async function forcarAtualizacao() {
+    console.log("Forcando atualizacao do ranking...");
+    await atualizarRankingOnline();
 }
 
 window.buscarRankingOnline = buscarRankingOnline;
-window.salvarPontuacaoOnline = salvarPontuacaoOnline;
 window.atualizarRankingOnline = atualizarRankingOnline;
-window.testarConexao = testarConexao;
+window.forcarAtualizacao = forcarAtualizacao;
 
 console.log("CloudRanking.js carregado!");
