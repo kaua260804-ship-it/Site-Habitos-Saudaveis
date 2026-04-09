@@ -1,0 +1,9 @@
+/* Arquivo principal - Importa todos os estilos */
+@import url('base.css');
+@import url('header.css');
+@import url('sidebar.css');
+@import url('cards.css');
+@import url('modal.css');
+@import url('quiz.css');
+@import url('aprendizado.css');
+@import url('animations.css');
