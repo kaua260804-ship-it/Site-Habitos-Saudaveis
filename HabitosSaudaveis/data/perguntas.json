@@ -1,0 +1,152 @@
+{
+  "alimentacao_piramide": {
+    "titulo": "🥗 Pirâmide Alimentar",
+    "perguntas": [
+      {
+        "pergunta": "O que fica na BASE da pirâmide alimentar (o que devemos comer MAIS)?",
+        "opcoes": ["Doces e gorduras", "Arroz, pães, massas, frutas e legumes", "Refrigerantes", "Fast food"],
+        "correta": 1
+      },
+      {
+        "pergunta": "O que fica no TOPO da pirâmide alimentar (o que devemos comer MENOS)?",
+        "opcoes": ["Frutas e verduras", "Doces, frituras e gorduras", "Arroz e feijão", "Leite e derivados"],
+        "correta": 1
+      },
+      {
+        "pergunta": "Quantas porções de frutas e vegetais são recomendadas por dia?",
+        "opcoes": ["1 porção", "3 porções", "5 porções", "10 porções"],
+        "correta": 2
+      },
+      {
+        "pergunta": "Qual destes alimentos deve estar em maior quantidade no seu prato?",
+        "opcoes": ["Batata frita", "Arroz integral e salada", "Bolo recheado", "Refrigerante"],
+        "correta": 1
+      },
+      {
+        "pergunta": "A pirâmide alimentar foi criada para:",
+        "opcoes": ["Confundir as pessoas", "Guiar uma alimentação equilibrada", "Vender mais doces", "Proibir certos alimentos"],
+        "correta": 1
+      }
+    ]
+  },
+  "alimentacao_frutas": {
+    "titulo": "🍓 Frutas da Estação",
+    "perguntas": [
+      {
+        "pergunta": "Qual fruta é típica do VERÃO no Brasil?",
+        "opcoes": ["Morango", "Melancia", "Laranja", "Uva"],
+        "correta": 1
+      },
+      {
+        "pergunta": "Comer frutas da época é melhor porque:",
+        "opcoes": ["São mais caras", "Estão mais saborosas e nutritivas", "Têm mais conservantes", "Duram menos tempo"],
+        "correta": 1
+      },
+      {
+        "pergunta": "Qual fruta é típica do INVERNO?",
+        "opcoes": ["Melancia", "Abacaxi", "Morango", "Manga"],
+        "correta": 2
+      },
+      {
+        "pergunta": "Quantas porções de frutas devemos comer por dia?",
+        "opcoes": ["1", "2 a 3", "5", "Nenhuma"],
+        "correta": 1
+      },
+      {
+        "pergunta": "Qual o benefício de comer frutas da estação?",
+        "opcoes": ["São mais baratas e nutritivas", "Têm mais açúcar", "São importadas", "Duran mais tempo na geladeira"],
+        "correta": 0
+      }
+    ]
+  },
+  "alimentacao_agua": {
+    "titulo": "💧 Importância da Água",
+    "perguntas": [
+      {
+        "pergunta": "Qual a porcentagem aproximada de água no corpo humano?",
+        "opcoes": ["30%", "50%", "60%", "80%"],
+        "correta": 2
+      },
+      {
+        "pergunta": "Quantos litros de água uma criança deve beber por dia?",
+        "opcoes": ["0,5 litro", "1 a 1,5 litro", "1,5 a 2 litros", "3 litros"],
+        "correta": 2
+      },
+      {
+        "pergunta": "A água ajuda o corpo a:",
+        "opcoes": ["Apenas matar a sede", "Transportar nutrientes e regular temperatura", "Engordar", "Dormir menos"],
+        "correta": 1
+      },
+      {
+        "pergunta": "Qual sinal indica que você está desidratado?",
+        "opcoes": ["Muita energia", "Urina escura e boca seca", "Fome excessiva", "Olhos vermelhos"],
+        "correta": 1
+      },
+      {
+        "pergunta": "Quando devemos beber água?",
+        "opcoes": ["Só quando sentir sede", "Regularmente ao longo do dia", "Só depois do almoço", "Só antes de dormir"],
+        "correta": 1
+      }
+    ]
+  },
+  "alimentacao_ultraprocessados": {
+    "titulo": "🚫 Evitar Ultraprocessados",
+    "perguntas": [
+      {
+        "pergunta": "Qual destes é um alimento ultraprocessado?",
+        "opcoes": ["Maçã", "Salgadinho de pacote", "Feijão", "Arroz integral"],
+        "correta": 1
+      },
+      {
+        "pergunta": "O que os ultraprocessados têm em excesso?",
+        "opcoes": ["Fibras e vitaminas", "Açúcar, sal e gorduras ruins", "Água e minerais", "Proteínas"],
+        "correta": 1
+      },
+      {
+        "pergunta": "O consumo excessivo de ultraprocessados pode causar:",
+        "opcoes": ["Obesidade e diabetes", "Mais energia", "Melhor sono", "Pele mais bonita"],
+        "correta": 0
+      },
+      {
+        "pergunta": "Qual alternativa é MAIS saudável que refrigerante?",
+        "opcoes": ["Suco de caixinha", "Água com gás e limão", "Energético", "Refrigerante diet"],
+        "correta": 1
+      },
+      {
+        "pergunta": "O que significa 'ultraprocessado'?",
+        "opcoes": ["Comida feita em casa", "Alimento com muitos ingredientes industriais", "Comida orgânica", "Fruta fresca"],
+        "correta": 1
+      }
+    ]
+  },
+  "alimentacao_cafe": {
+    "titulo": "☀️ Café da Manhã Poderoso",
+    "perguntas": [
+      {
+        "pergunta": "O que NÃO deve faltar em um café da manhã saudável?",
+        "opcoes": ["Refrigerante", "Carboidratos e frutas", "Salgadinho", "Bolo recheado"],
+        "correta": 1
+      },
+      {
+        "pergunta": "Qual benefício do café da manhã?",
+        "opcoes": ["Dá energia para o dia", "Engorda mais", "Tira o sono", "Substitui o almoço"],
+        "correta": 0
+      },
+      {
+        "pergunta": "Qual é um exemplo de café da manhã saudável?",
+        "opcoes": ["Pão com manteiga e café preto", "Leite, pão integral e fruta", "Bolacha recheada e refrigerante", "Salgadinho e suco de caixinha"],
+        "correta": 1
+      },
+      {
+        "pergunta": "Pular o café da manhã pode causar:",
+        "opcoes": ["Mais disposição", "Dificuldade de concentração", "Ganho de massa muscular", "Melhor memória"],
+        "correta": 1
+      },
+      {
+        "pergunta": "Qual é a melhor bebida para o café da manhã?",
+        "opcoes": ["Refrigerante", "Energético", "Leite ou iogurte natural", "Suco de caixinha"],
+        "correta": 2
+      }
+    ]
+  }
+}

@@ -1,0 +1,201 @@
+/* Modal de Aprendizado */
+.modal-aprendizado {
+    max-width: 1000px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 0;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+    border-radius: 40px;
+}
+
+.close-aprendizado {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 35px;
+    cursor: pointer;
+    color: #4a5568;
+    z-index: 10;
+    background: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.close-aprendizado:hover {
+    background: #ed8936;
+    color: white;
+    transform: scale(1.1);
+}
+
+.aprendizado-container {
+    padding: 35px;
+}
+
+.aprendizado-header {
+    text-align: center;
+    margin-bottom: 35px;
+    padding-bottom: 25px;
+    border-bottom: 4px dashed #ed8936;
+    background: linear-gradient(135deg, #fff9f0, #fff);
+    border-radius: 30px;
+    padding: 30px;
+}
+
+.aprendizado-header .aprendizado-emoji {
+    font-size: 70px;
+    animation: bounce 2s infinite;
+}
+
+.aprendizado-header h2 {
+    font-size: 36px;
+    color: #2d3748;
+    margin: 15px 0 10px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.aprendizado-header p {
+    color: #718096;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.aprendizado-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    margin: 35px 0;
+}
+
+.aprendizado-card {
+    background: white;
+    border-radius: 25px;
+    padding: 25px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+}
+
+.aprendizado-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    border-color: #ed8936;
+    background: #fffaf5;
+}
+
+.aprendizado-card-icon {
+    font-size: 55px;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.aprendizado-card h3 {
+    color: #ed8936;
+    font-size: 22px;
+    margin-bottom: 12px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.aprendizado-card p {
+    color: #4a5568;
+    line-height: 1.6;
+    font-size: 15px;
+    text-align: center;
+}
+
+.aprendizado-links {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.aprendizado-links a {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 6px 15px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.aprendizado-links a:hover {
+    transform: scale(0.95);
+    box-shadow: 0 3px 10px rgba(102,126,234,0.4);
+}
+
+.aprendizado-footer {
+    text-align: center;
+    margin-top: 35px;
+    padding-top: 25px;
+    border-top: 2px solid #e2e8f0;
+}
+
+.btn-fechar-aprendizado {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 14px 40px;
+    border: none;
+    border-radius: 60px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+}
+
+.btn-fechar-aprendizado:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(102,126,234,0.6);
+}
+
+/* Scroll */
+.modal-aprendizado::-webkit-scrollbar {
+    width: 10px;
+}
+
+.modal-aprendizado::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.modal-aprendizado::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 10px;
+}
+
+.modal-aprendizado::-webkit-scrollbar-thumb:hover {
+    background: #ed8936;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .aprendizado-container {
+        padding: 20px;
+    }
+    
+    .aprendizado-header h2 {
+        font-size: 24px;
+    }
+    
+    .aprendizado-grid {
+        grid-template-columns: 1fr;
+    }
+}
