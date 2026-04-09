@@ -1,0 +1,62 @@
+/* ============================================
+   MODAL.CSS - ESTILOS DOS MODAIS
+   ============================================ */
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Fechar dos modais */
+.close, .close-aprendizado {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 30px;
+    cursor: pointer;
+    color: #a0aec0;
+    transition: 0.2s;
+    z-index: 10;
+    background: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close:hover, .close-aprendizado:hover {
+    color: #ef4444;
+    transform: scale(1.1);
+}
+
+/* ========== RESPONSIVO ========== */
+@media (max-width: 768px) {
+    .close, .close-aprendizado {
+        right: 15px;
+        top: 12px;
+        font-size: 24px;
+        width: 30px;
+        height: 30px;
+    }
+}
