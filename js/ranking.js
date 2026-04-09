@@ -2,54 +2,15 @@
 // SISTEMA DE RANKING - VERSÃO ONLINE
 // ============================================
 
-// Função principal de atualização do ranking
+// Função principal de atualização
 async function atualizarRanking() {
     console.log("Atualizando ranking...");
     
     // Tentar buscar do online primeiro
-    if (typeof buscarRankingOnline !== 'undefined') {
-        const rankingOnline = await buscarRankingOnline();
-        if (rankingOnline && rankingOnline.length > 0) {
-            atualizarListaRanking(rankingOnline);
-            return;
-        }
-    }
-    
-    // Fallback para localStorage se offline
-    atualizarRankingLocal();
-}
-
-// Atualizar a lista do ranking na tela
-function atualizarListaRanking(ranking) {
-    const lista = document.getElementById("rankingList");
-    const usuarioAtual = typeof getUsuarioAtual !== 'undefined' ? getUsuarioAtual() : null;
-    
-    if (!lista) return;
-    
-    lista.innerHTML = "";
-    
-    if (!ranking || ranking.length === 0) {
-        lista.innerHTML = '<li>✨ Ninguém no ranking ainda</li>';
-        return;
-    }
-    
-    for (let i = 0; i < Math.min(ranking.length, 20); i++) {
-        const jogador = ranking[i];
-        const medalha = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}º`;
-        const isCurrentUser = usuarioAtual && usuarioAtual.apelido === jogador.apelido;
-        
-        const li = document.createElement("li");
-        li.className = isCurrentUser ? "current-player-row" : "";
-        li.innerHTML = `
-            <div class="ranking-position">${medalha}</div>
-            <div class="ranking-info">
-                <strong>${escapeHtml(jogador.apelido || jogador.nome || "?")}</strong>
-                <span class="ranking-name">${escapeHtml(jogador.nome || "")}</span>
-                <span class="ranking-age">${jogador.idade || 0} anos</span>
-            </div>
-            <div class="ranking-points">⭐ ${jogador.pontos || 0} pts</div>
-        `;
-        lista.appendChild(li);
+    if (typeof atualizarRankingOnline !== 'undefined') {
+        await atualizarRankingOnline();
+    } else {
+        atualizarRankingLocal();
     }
 }
 
@@ -116,38 +77,20 @@ function atualizarEstatisticas() {
     }
 }
 
-// Sobrescrever adicionarPontos
-if (typeof window.adicionarPontosOriginal === 'undefined') {
-    window.adicionarPontosOriginal = window.adicionarPontos;
-}
-
-window.adicionarPontos = async function(qtd) {
-    if (typeof window.adicionarPontosOriginal === 'function') {
-        window.adicionarPontosOriginal(qtd);
-    }
-    
+// Adicionar pontos
+window.adicionarPontos = function(qtd) {
     const usuario = typeof getUsuarioAtual !== 'undefined' ? getUsuarioAtual() : null;
     if (usuario) {
         usuario.pontos = (usuario.pontos || 0) + qtd;
         if (typeof salvarUsuarioAtual !== 'undefined') {
             salvarUsuarioAtual(usuario);
         }
-        if (typeof salvarPontuacaoOnline !== 'undefined') {
-            await salvarPontuacaoOnline(usuario);
-        }
     }
     
-    await atualizarRanking();
+    atualizarHeader();
+    atualizarRanking();
     atualizarEstatisticas();
 };
-
-// Função auxiliar
-function escapeHtml(text) {
-    if (!text) return "";
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-}
 
 // Inicialização
 setInterval(atualizarRanking, 10000);
