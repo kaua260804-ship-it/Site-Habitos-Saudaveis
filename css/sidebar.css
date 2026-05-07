@@ -1,0 +1,128 @@
+.sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    animation: slideRight 0.5s ease-out;
+}
+
+/* ========== RESPONSIVO MOBILE ========== */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        order: 2;
+        gap: 20px;
+    }
+}
+
+.ranking-box, .stats-box {
+    background: white;
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.ranking-header {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    padding: 15px 20px;
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ranking-header h2 {
+    font-size: 16px;
+    margin: 0;
+}
+
+.ranking-header i {
+    font-size: 20px;
+}
+
+.ranking-content {
+    padding: 15px;
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.ranking-content ol {
+    list-style: none;
+    padding: 0;
+}
+
+.ranking-content li {
+    padding: 10px 12px;
+    margin: 6px 0;
+    background: #f7fafc;
+    border-radius: 50px;
+    font-weight: 500;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.ranking-footer {
+    padding: 12px 15px;
+    background: #fef3c7;
+    text-align: center;
+    font-size: 11px;
+    color: #d97706;
+}
+
+.stats-header {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 12px 20px;
+    text-align: center;
+}
+
+.stats-header h3 {
+    font-size: 14px;
+    margin: 0;
+}
+
+.progress-bar-container {
+    padding: 15px;
+    background: #f7fafc;
+}
+
+.progress-bar {
+    height: 10px;
+    background: linear-gradient(90deg, #10b981, #34d399);
+    border-radius: 20px;
+    transition: width 0.5s ease;
+}
+
+.stats-info {
+    padding: 12px 15px;
+    background: white;
+}
+
+.stats-info p {
+    margin: 6px 0;
+    font-size: 12px;
+    color: #4a5568;
+}
+
+.main-content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* ========== RESPONSIVO MOBILE ========== */
+@media (max-width: 768px) {
+    .ranking-content li {
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+    
+    .stats-info p {
+        font-size: 11px;
+    }
+}

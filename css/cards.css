@@ -1,0 +1,195 @@
+.hero {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 25px;
+    margin-bottom: 30px;
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.hero-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px;
+    color: white;
+}
+
+.hero-text h2 {
+    font-size: 28px;
+    margin-bottom: 12px;
+}
+
+.hero-text p {
+    font-size: 16px;
+    opacity: 0.95;
+    margin-bottom: 20px;
+}
+
+.hero-emoji {
+    font-size: 70px;
+    animation: bounce 2s infinite;
+}
+
+.btn-hero {
+    background: white;
+    color: #667eea;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.section-header h2 {
+    font-size: 24px;
+    color: white;
+    margin-bottom: 8px;
+}
+
+.section-header p {
+    color: rgba(255,255,255,0.8);
+    font-size: 14px;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    cursor: pointer;
+}
+
+.card-header {
+    padding: 20px;
+    text-align: center;
+}
+
+.card-header .emoji {
+    font-size: 45px;
+}
+
+.card-header h3 {
+    font-size: 18px;
+    color: white;
+    margin-top: 8px;
+}
+
+.card-content {
+    padding: 15px;
+}
+
+.card-content p {
+    color: #718096;
+    margin-bottom: 15px;
+    font-size: 13px;
+}
+
+.card-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-aprender {
+    background: #48bb78;
+    color: white;
+}
+
+.btn-aprender:hover {
+    background: #38a169;
+    transform: scale(0.98);
+}
+
+/* ========== RESPONSIVO MOBILE ========== */
+@media (max-width: 768px) {
+    .hero {
+        border-radius: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .hero-content {
+        flex-direction: column;
+        text-align: center;
+        padding: 25px 20px;
+    }
+    
+    .hero-text h2 {
+        font-size: 20px;
+    }
+    
+    .hero-text p {
+        font-size: 14px;
+    }
+    
+    .hero-emoji {
+        font-size: 50px;
+        margin-top: 15px;
+    }
+    
+    .btn-hero {
+        padding: 8px 20px;
+        font-size: 13px;
+    }
+    
+    .section-header h2 {
+        font-size: 20px;
+    }
+    
+    .section-header p {
+        font-size: 12px;
+    }
+    
+    .cards {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .card-header {
+        padding: 15px;
+    }
+    
+    .card-header .emoji {
+        font-size: 35px;
+    }
+    
+    .card-header h3 {
+        font-size: 16px;
+    }
+    
+    .btn {
+        padding: 8px;
+        font-size: 11px;
+    }
+}

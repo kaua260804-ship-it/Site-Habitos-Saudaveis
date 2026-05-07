@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>🌱 Hábitos Saudáveis - Aventura da Saúde</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>🌱 Hábitos Saudáveis</h1>
+            <p class="slogan">Sua aventura pela saúde começa aqui!</p>
+        </div>
+        <div class="header-info">
+            <div class="player-card" id="playerName">
+                <i class="fas fa-user-astronaut"></i>
+                <span>Entrar</span>
+            </div>
+            <div class="points-card">
+                <i class="fas fa-star"></i>
+                <span id="playerPoints">⭐ 0 pontos</span>
+            </div>
+            <div class="title-card">
+                <i class="fas fa-medal"></i>
+                <span id="playerTitle">🌿 Iniciante Saudável</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- Sidebar com Ranking -->
+            <aside class="sidebar">
+                <div class="ranking-box">
+                    <div class="ranking-header">
+                        <i class="fas fa-trophy"></i>
+                        <h2>Ranking dos Campeões</h2>
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="ranking-content">
+                        <ol id="rankingList">
+                            <li>✨ Carregando ranking...</li>
+                        </ol>
+                    </div>
+                    <div class="ranking-footer">
+                        <p><i class="fas fa-chart-line"></i> Faça quizzes para subir!</p>
+                    </div>
+                </div>
+                
+                <div class="stats-box">
+                    <div class="stats-header">
+                        <i class="fas fa-chart-simple"></i>
+                        <h3>Seu Progresso</h3>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                    </div>
+                    <div class="stats-info">
+                        <p><i class="fas fa-star"></i> Próximo título: <span id="nextTitle">🍎 Six Seven (100 pts)</span></p>
+                        <p><i class="fas fa-gamepad"></i> Quizzes feitos: <span id="quizzesDone">0</span></p>
+                        <p style="margin-top: 10px; font-size: 11px; color: #48bb78;" id="statusConexao">
+                            <i class="fas fa-circle"></i> Modo Online
+                        </p>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Conteúdo Principal -->
+            <div class="main-content">
+                <section class="hero">
+                    <div class="hero-content">
+                        <div class="hero-text">
+                            <h2>Bem-vindo, pequeno herói da saúde! 🦸‍♂️🦸‍♀️</h2>
+                            <p>Aprenda, faça os quizzes e ganhe títulos incríveis!</p>
+                            <div class="hero-buttons">
+                                <button class="btn-hero" onclick="document.querySelector('.cards-section').scrollIntoView({behavior: 'smooth'})">
+                                    <i class="fas fa-play"></i> Começar Agora
+                                </button>
+                            </div>
+                        </div>
+                        <div class="hero-emoji">
+                            🏆
+                        </div>
+                    </div>
+                </section>
+
+                <section class="cards-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-book-open"></i> Temas para Aprender</h2>
+                        <p>Escolha um tema e comece sua jornada!</p>
+                    </div>
+                    <div class="cards" id="cardsContainer">
+                        <div class="loading-spinner">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Carregando temas incríveis...</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal do Quiz -->
+    <div id="modalQuiz" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="quizArea"></div>
+        </div>
+    </div>
+
+    <!-- Modal do Aprendizado -->
+    <div id="modalAprendizado" class="modal">
+        <div class="modal-content modal-aprendizado">
+            <span class="close-aprendizado" onclick="fecharModalAprendizado()">&times;</span>
+            <div id="aprendizadoArea"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Login/Cadastro -->
+    <div id="modalAuth" class="modal">
+        <div class="modal-content auth-modal">
+            <span class="close-auth" onclick="fecharModalAuth()">&times;</span>
+            <div id="authContainer"></div>
+        </div>
+    </div>
+
+    <!-- Botão de Logout -->
+    <div id="logoutBtn" class="logout-btn" onclick="fazerLogout()" style="display: none;">
+        <i class="fas fa-sign-out-alt"></i> Sair
+    </div>
+
+    <!-- SCRIPTS - Ordem correta -->
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/userManager.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cloudRanking.js"></script>
+    <script src="js/linksData.js"></script>
+    <script src="js/aprendizado.js"></script>
+    <script src="js/quiz.js"></script>
+    <script src="js/ranking.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- Script para verificar conexão -->
+    <script>
+        // Atualizar status de conexão
+        setInterval(() => {
+            const statusEl = document.getElementById('statusConexao');
+            if (statusEl && typeof supabaseClient !== 'undefined') {
+                if (supabaseClient) {
+                    statusEl.innerHTML = '<i class="fas fa-circle" style="color: #48bb78;"></i> Modo Online';
+                    statusEl.style.color = '#48bb78';
+                } else {
+                    statusEl.innerHTML = '<i class="fas fa-circle" style="color: #f59e0b;"></i> Modo Offline';
+                    statusEl.style.color = '#f59e0b';
+                }
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
