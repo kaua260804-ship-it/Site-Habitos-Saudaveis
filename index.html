@@ -4,19 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>🌱 Hábitos Saudáveis - Aventura da Saúde</title>
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/admin.css">
+    
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Meta tags -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Aprenda sobre saúde de forma divertida com quizzes e desafios!">
 </head>
 <body>
+    <!-- ========== HEADER ========== -->
     <header>
         <div class="logo">
             <h1>🌱 Hábitos Saudáveis</h1>
             <p class="slogan">Sua aventura pela saúde começa aqui!</p>
         </div>
         <div class="header-info">
-            <div class="player-card" id="playerName">
+            <div class="player-card" id="playerName" onclick="handlePlayerClick()">
                 <i class="fas fa-user-astronaut"></i>
                 <span>Entrar</span>
             </div>
@@ -31,6 +41,7 @@
         </div>
     </header>
 
+    <!-- ========== CONTEÚDO PRINCIPAL ========== -->
     <main>
         <div class="container">
             <!-- Sidebar com Ranking -->
@@ -62,15 +73,16 @@
                     <div class="stats-info">
                         <p><i class="fas fa-star"></i> Próximo título: <span id="nextTitle">🍎 Six Seven (100 pts)</span></p>
                         <p><i class="fas fa-gamepad"></i> Quizzes feitos: <span id="quizzesDone">0</span></p>
-                        <p style="margin-top: 10px; font-size: 11px; color: #48bb78;" id="statusConexao">
-                            <i class="fas fa-circle"></i> Modo Online
+                        <p style="margin-top: 10px; font-size: 11px;" id="statusConexao">
+                            <i class="fas fa-circle" style="color: #f59e0b;"></i> 🟡 Conectando...
                         </p>
                     </div>
                 </div>
             </aside>
 
-            <!-- Conteúdo Principal -->
+            <!-- Área Principal -->
             <div class="main-content">
+                <!-- Hero -->
                 <section class="hero">
                     <div class="hero-content">
                         <div class="hero-text">
@@ -82,12 +94,11 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="hero-emoji">
-                            🏆
-                        </div>
+                        <div class="hero-emoji">🏆</div>
                     </div>
                 </section>
 
+                <!-- Cards de Temas -->
                 <section class="cards-section">
                     <div class="section-header">
                         <h2><i class="fas fa-book-open"></i> Temas para Aprender</h2>
@@ -104,10 +115,12 @@
         </div>
     </main>
 
+    <!-- ========== MODAIS ========== -->
+    
     <!-- Modal do Quiz -->
     <div id="modalQuiz" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <span class="close" onclick="fecharModalQuiz()">&times;</span>
             <div id="quizArea"></div>
         </div>
     </div>
@@ -128,37 +141,129 @@
         </div>
     </div>
 
+    <!-- ========== BOTÕES FLUTUANTES ========== -->
+    
     <!-- Botão de Logout -->
     <div id="logoutBtn" class="logout-btn" onclick="fazerLogout()" style="display: none;">
         <i class="fas fa-sign-out-alt"></i> Sair
     </div>
 
-    <!-- SCRIPTS - Ordem correta -->
+    <!-- ========== SCRIPTS (ORDEM CORRETA) ========== -->
+    
+    <!-- 1. Biblioteca Supabase (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 2. Cliente Supabase -->
     <script src="js/supabaseClient.js"></script>
+    
+    <!-- 3. Gerenciador de Usuários -->
     <script src="js/userManager.js"></script>
+    
+    <!-- 4. Autenticação -->
     <script src="js/auth.js"></script>
+    
+    <!-- 5. Ranking Online (Cloud) -->
     <script src="js/cloudRanking.js"></script>
+    
+    <!-- 6. Dados de Links -->
     <script src="js/linksData.js"></script>
+    
+    <!-- 7. Sistema de Aprendizado -->
     <script src="js/aprendizado.js"></script>
+    
+    <!-- 8. Sistema de Quiz -->
     <script src="js/quiz.js"></script>
+    
+    <!-- 9. Ranking -->
     <script src="js/ranking.js"></script>
+    
+    <!-- 10. Painel Admin -->
+    <script src="js/admin.js"></script>
+    
+    <!-- 11. Sistema Principal -->
     <script src="js/main.js"></script>
 
-    <!-- Script para verificar conexão -->
+    <!-- ========== INICIALIZAÇÃO ========== -->
     <script>
-        // Atualizar status de conexão
+        // Função para lidar com clique no nome do jogador
+        function handlePlayerClick() {
+            const usuario = typeof getUsuarioAtual !== 'undefined' ? getUsuarioAtual() : null;
+            
+            if (usuario) {
+                // Mostrar opções
+                const opcoes = [
+                    'Continuar jogando',
+                    'Ver meu perfil',
+                    'Trocar de conta (logout)',
+                    'Cancelar'
+                ];
+                
+                const escolha = prompt(
+                    `🎮 ${usuario.apelido}\n` +
+                    `⭐ ${usuario.pontos || 0} pontos\n` +
+                    `🏅 ${usuario.titulo || '🌿 Iniciante'}\n\n` +
+                    'O que deseja fazer?\n' +
+                    '1. Continuar jogando\n' +
+                    '2. Ver meu perfil\n' +
+                    '3. Trocar de conta (logout)\n' +
+                    '4. Cancelar'
+                );
+                
+                if (escolha === '3' || escolha === '3. Trocar de conta (logout)') {
+                    if (typeof fazerLogout !== 'undefined') {
+                        fazerLogout();
+                    }
+                } else if (escolha === '2' || escolha === '2. Ver meu perfil') {
+                    mostrarToast(`👤 ${usuario.apelido} - ${usuario.idade} anos - ${usuario.pontos || 0} pts`, 'info');
+                }
+            } else {
+                if (typeof mostrarModalAuth !== 'undefined') {
+                    mostrarModalAuth();
+                }
+            }
+        }
+        
+        // Fechar modais ao clicar fora
+        window.onclick = function(event) {
+            const modalQuiz = document.getElementById("modalQuiz");
+            const modalAprendizado = document.getElementById("modalAprendizado");
+            const modalAuth = document.getElementById("modalAuth");
+            
+            if (event.target === modalQuiz) {
+                modalQuiz.style.display = "none";
+                const quizArea = document.getElementById("quizArea");
+                if (quizArea) quizArea.innerHTML = "";
+            }
+            if (event.target === modalAprendizado) {
+                if (typeof fecharModalAprendizado !== 'undefined') {
+                    fecharModalAprendizado();
+                }
+            }
+            if (event.target === modalAuth) {
+                if (typeof fecharModalAuth !== 'undefined') {
+                    fecharModalAuth();
+                }
+            }
+        };
+        
+        // Atualizar status de conexão periodicamente
         setInterval(() => {
             const statusEl = document.getElementById('statusConexao');
             if (statusEl && typeof supabaseClient !== 'undefined') {
                 if (supabaseClient) {
-                    statusEl.innerHTML = '<i class="fas fa-circle" style="color: #48bb78;"></i> Modo Online';
+                    statusEl.innerHTML = '<i class="fas fa-circle" style="color: #48bb78;"></i> 🟢 Modo Online';
                     statusEl.style.color = '#48bb78';
                 } else {
-                    statusEl.innerHTML = '<i class="fas fa-circle" style="color: #f59e0b;"></i> Modo Offline';
+                    statusEl.innerHTML = '<i class="fas fa-circle" style="color: #f59e0b;"></i> 🟡 Modo Offline';
                     statusEl.style.color = '#f59e0b';
                 }
             }
-        }, 5000);
+        }, 10000);
+        
+        // Log de inicialização
+        console.log('🌱 Hábitos Saudáveis - Site carregado!');
+        console.log('📦 Versão: 3.0 (Supabase + Admin)');
+        console.log('🔧 Admin disponível para usuários autorizados');
     </script>
 </body>
 </html>
