@@ -1,5 +1,5 @@
 // ============================================
-// SISTEMA DE AUTENTICAÇÃO - VERSÃO SUPABASE
+// SISTEMA DE AUTENTICAÇÃO - VERSÃO SUPABASE (CORRIGIDO)
 // ============================================
 
 // Mostrar modal de login/cadastro
@@ -42,8 +42,27 @@ function mostrarTelaLogin() {
                 <i class="fas fa-sign-in-alt"></i> Entrar
             </button>
             <p class="auth-link" onclick="mostrarTelaCadastro()">Não tem conta? Cadastre-se</p>
+            <p style="text-align: center; margin-top: 15px; font-size: 12px; color: #a0aec0;">
+                <span id="statusLogin">🟡 Modo: Verificando...</span>
+            </p>
         </div>
     `;
+    
+    // Atualizar status
+    atualizarStatusLogin();
+}
+
+function atualizarStatusLogin() {
+    const statusEl = document.getElementById('statusLogin');
+    if (statusEl) {
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+            statusEl.innerHTML = '🟢 Modo: Online (Supabase)';
+            statusEl.style.color = '#48bb78';
+        } else {
+            statusEl.innerHTML = '🟡 Modo: Offline (Local)';
+            statusEl.style.color = '#f59e0b';
+        }
+    }
 }
 
 // Mostrar tela de cadastro
@@ -86,10 +105,12 @@ function mostrarTelaCadastro() {
     `;
 }
 
-// Fazer login (ATUALIZADO COM SUPABASE)
+// Fazer login (CORRIGIDO)
 async function fazerLogin() {
     const apelido = document.getElementById("loginApelido")?.value.trim();
     const senha = document.getElementById("loginSenha")?.value;
+    
+    console.log('🔑 Tentando login:', apelido);
     
     if (!apelido || !senha) {
         mostrarToast("Preencha todos os campos!", "error");
@@ -98,29 +119,51 @@ async function fazerLogin() {
     
     let usuario = null;
     
-    // Tentar login no Supabase primeiro
+    // Tentar login no Supabase PRIMEIRO
     if (typeof loginDB !== 'undefined' && supabaseClient) {
+        console.log('🔄 Buscando no Supabase...');
         mostrarToast("Conectando ao servidor...", "info");
         usuario = await loginDB(apelido, senha);
+        console.log('📊 Resultado Supabase:', usuario ? 'Encontrado' : 'Não encontrado');
+    } else {
+        console.log('⚠️ Supabase não disponível');
     }
     
-    // Fallback para localStorage se Supabase falhar
+    // VERIFICAÇÃO DETALHADA
     if (!usuario) {
-        console.log("Tentando login local...");
-        usuario = buscarUsuario(apelido, senha);
+        console.log('❌ Usuário não encontrado no Supabase');
+        
+        // Tentar localStorage como último recurso
+        if (typeof buscarUsuario !== 'undefined') {
+            usuario = buscarUsuario(apelido, senha);
+            console.log('💾 Tentativa localStorage:', usuario ? 'Encontrado' : 'Não encontrado');
+        }
     }
     
     if (usuario) {
-        salvarUsuarioAtual(usuario);
+        console.log('✅ Login bem-sucedido:', usuario.apelido);
+        
+        // Garantir que o objeto tenha todos os campos
+        const usuarioCompleto = {
+            nome: usuario.nome || apelido,
+            apelido: usuario.apelido,
+            idade: usuario.idade || 0,
+            senha: usuario.senha || senha,
+            pontos: usuario.pontos || 0,
+            titulo: usuario.titulo || '🌿 Iniciante Saudável',
+            quizzes_completados: usuario.quizzes_completados || []
+        };
+        
+        salvarUsuarioAtual(usuarioCompleto);
         fecharModalAuth();
         carregarUsuarioLogado();
         
-        // Sincronizar dados com Supabase se disponível
+        // Sincronizar com Supabase
         if (typeof sincronizarDadosLocais !== 'undefined' && supabaseClient) {
-            await sincronizarDadosLocais(usuario);
+            await sincronizarDadosLocais(usuarioCompleto);
         }
         
-        mostrarToast(`Bem-vindo de volta, ${usuario.apelido}! 🎉`, "success");
+        mostrarToast(`Bem-vindo, ${usuarioCompleto.apelido}! 🎉`, "success");
         
         // Atualizar interface
         if (typeof carregarPontosDoUsuario !== 'undefined') {
@@ -132,12 +175,29 @@ async function fazerLogin() {
         if (typeof atualizarEstatisticas !== 'undefined') {
             atualizarEstatisticas();
         }
+        
+        // Verificar se é admin
+        if (typeof verificarAdmin !== 'undefined') {
+            const isAdmin = await verificarAdmin();
+            if (isAdmin) {
+                console.log('🔧 Admin detectado!');
+                if (typeof adicionarBotaoAdmin !== 'undefined') {
+                    adicionarBotaoAdmin();
+                }
+            }
+        }
+        
     } else {
-        mostrarToast("Apelido ou senha incorretos!", "error");
+        console.log('❌ Login falhou para:', apelido);
+        mostrarToast("Apelido ou senha incorretos! Verifique os dados.", "error");
+        
+        // Sugestão de debug
+        console.log('💡 Dica: Verifique se o usuário existe na tabela "usuarios" do Supabase');
+        console.log('💡 Execute: SELECT * FROM public.usuarios WHERE apelido = \'' + apelido + '\'');
     }
 }
 
-// Fazer cadastro (ATUALIZADO COM SUPABASE)
+// Fazer cadastro (CORRIGIDO)
 async function fazerCadastro() {
     const nome = document.getElementById("cadastroNome")?.value.trim();
     const apelido = document.getElementById("cadastroApelido")?.value.trim();
@@ -167,8 +227,8 @@ async function fazerCadastro() {
         return;
     }
     
-    // Verificar se apelido tem caracteres especiais
-    if (!/^[a-zA-Z0-9_\s]+$/.test(apelido)) {
+    // Permitir espaços e acentos
+    if (!/^[a-zA-Z0-9\u00C0-\u00FF\s]+$/.test(apelido)) {
         mostrarToast("Apelido só pode ter letras, números e espaços!", "error");
         return;
     }
@@ -180,24 +240,32 @@ async function fazerCadastro() {
         senha: senha,
         pontos: 0,
         titulo: '🌿 Iniciante Saudável',
-        quizzes_completados: [],
-        dataCriacao: new Date().toISOString()
+        quizzes_completados: []
     };
+    
+    console.log('📝 Tentando cadastrar:', apelido);
     
     let resultado;
     
     // Tentar salvar no Supabase primeiro
     if (typeof salvarUsuarioDB !== 'undefined' && supabaseClient) {
+        console.log('🔄 Salvando no Supabase...');
         mostrarToast("Conectando ao servidor...", "info");
         resultado = await salvarUsuarioDB(novoUsuario);
+        console.log('📊 Resultado:', resultado);
     } else {
-        // Fallback para localStorage
-        console.log("Usando armazenamento local...");
-        resultado = salvarUsuario(novoUsuario);
+        console.log('⚠️ Supabase indisponível, usando localStorage');
+        if (typeof salvarUsuario !== 'undefined') {
+            resultado = salvarUsuario(novoUsuario);
+        } else {
+            resultado = { sucesso: false, mensagem: 'Nenhum sistema disponível' };
+        }
     }
     
     if (resultado.sucesso) {
-        // Salvar localmente também para acesso offline
+        console.log('✅ Cadastro realizado!');
+        
+        // Salvar localmente também
         const usuarioLocal = { 
             ...novoUsuario, 
             id: resultado.dados?.id || Date.now() 
@@ -206,7 +274,7 @@ async function fazerCadastro() {
         
         fecharModalAuth();
         carregarUsuarioLogado();
-        mostrarToast(`Conta criada com sucesso! Bem-vindo, ${apelido}! 🎉`, "success");
+        mostrarToast(`Conta criada! Bem-vindo, ${apelido}! 🎉`, "success");
         
         // Atualizar interface
         if (typeof atualizarRanking !== 'undefined') {
@@ -216,7 +284,8 @@ async function fazerCadastro() {
             atualizarEstatisticas();
         }
     } else {
-        mostrarToast(resultado.mensagem, "error");
+        console.log('❌ Falha no cadastro:', resultado.mensagem);
+        mostrarToast(resultado.mensagem || 'Erro ao cadastrar', "error");
     }
 }
 
@@ -227,15 +296,17 @@ function carregarUsuarioLogado() {
     const logoutBtn = document.getElementById("logoutBtn");
     
     if (usuario && playerNameEl) {
-        playerNameEl.innerHTML = `<i class="fas fa-user-astronaut"></i> ${usuario.apelido} (${usuario.idade}a)`;
+        playerNameEl.innerHTML = `<i class="fas fa-user-astronaut"></i> ${usuario.apelido} (${usuario.idade || '?'}a)`;
         playerNameEl.style.cursor = "pointer";
         playerNameEl.title = "Clique para ver opções";
         
         if (logoutBtn) {
             logoutBtn.style.display = "flex";
         }
+        
+        console.log('👤 Usuário carregado:', usuario.apelido, '-', usuario.pontos || 0, 'pts');
     } else if (playerNameEl) {
-        playerNameEl.innerHTML = `<i class="fas fa-user-astronaut"></i> Fazer Login`;
+        playerNameEl.innerHTML = `<i class="fas fa-user-astronaut"></i> Entrar`;
         playerNameEl.style.cursor = "pointer";
         
         if (logoutBtn) {
@@ -249,7 +320,7 @@ async function fazerLogout() {
     const usuario = getUsuarioAtual();
     
     if (usuario) {
-        // Última sincronização antes de sair
+        // Sincronizar antes de sair
         if (typeof atualizarPontosDB !== 'undefined' && supabaseClient) {
             await atualizarPontosDB(
                 usuario.apelido, 
@@ -278,6 +349,10 @@ async function fazerLogout() {
         atualizarEstatisticas();
     }
     
+    // Remover botão admin
+    const btnAdmin = document.querySelector('.btn-admin-flutuante');
+    if (btnAdmin) btnAdmin.remove();
+    
     mostrarToast("Você saiu da sua conta! Até logo! 👋", "info");
 }
 
@@ -293,9 +368,8 @@ function carregarPontosDoUsuario() {
     }
 }
 
-// Mostrar toast (notificação melhorada)
+// Mostrar toast (notificação)
 function mostrarToast(mensagem, tipo = "success") {
-    // Remover toasts anteriores
     const toastAntigo = document.querySelector('.toast-message');
     if (toastAntigo) toastAntigo.remove();
     
@@ -340,7 +414,6 @@ function mostrarToast(mensagem, tipo = "success") {
     `;
     document.body.appendChild(toast);
     
-    // Auto-remover após 3 segundos
     setTimeout(() => {
         toast.style.animation = "slideOutRight 0.3s ease";
         setTimeout(() => toast.remove(), 300);
@@ -351,27 +424,13 @@ function mostrarToast(mensagem, tipo = "success") {
 const styleSheet = document.createElement("style");
 styleSheet.textContent = `
     @keyframes slideInRight {
-        from {
-            opacity: 0;
-            transform: translateX(100px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
+        from { opacity: 0; transform: translateX(100px); }
+        to { opacity: 1; transform: translateX(0); }
     }
-    
     @keyframes slideOutRight {
-        from {
-            opacity: 1;
-            transform: translateX(0);
-        }
-        to {
-            opacity: 0;
-            transform: translateX(100px);
-        }
+        from { opacity: 1; transform: translateX(0); }
+        to { opacity: 0; transform: translateX(100px); }
     }
-    
     .toast-message:hover {
         transform: translateY(-2px);
         box-shadow: 0 12px 28px rgba(0,0,0,0.3);
@@ -391,4 +450,4 @@ window.carregarUsuarioLogado = carregarUsuarioLogado;
 window.carregarPontosDoUsuario = carregarPontosDoUsuario;
 window.mostrarToast = mostrarToast;
 
-console.log("✅ Auth.js carregado com sucesso! (v2.0 - Supabase)");
+console.log("✅ Auth.js carregado com sucesso! (v3.0 - Corrigido)");
