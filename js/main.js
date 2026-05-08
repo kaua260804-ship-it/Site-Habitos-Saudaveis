@@ -1,10 +1,11 @@
 // ============================================
-// SISTEMA PRINCIPAL - COM LOGIN
+// SISTEMA PRINCIPAL - VERSÃO SUPABASE
 // ============================================
 
 let pontos = localStorage.getItem("pontos") ? parseInt(localStorage.getItem("pontos")) : 0;
 let nomeJogador = localStorage.getItem("nome") || "";
 
+// ========== ATUALIZAR HEADER ==========
 function atualizarHeader() {
     const usuario = getUsuarioAtual();
     const playerNameEl = document.getElementById("playerName");
@@ -12,7 +13,7 @@ function atualizarHeader() {
     const playerTitleEl = document.getElementById("playerTitle");
     
     if (usuario && playerNameEl) {
-        playerNameEl.innerHTML = `<i class="fas fa-user-astronaut"></i> ${usuario.apelido} (${usuario.idade}a)`;
+        playerNameEl.innerHTML = `<i class="fas fa-user-astronaut"></i> ${usuario.apelido} (${usuario.idade || '?'}a)`;
     } else if (playerNameEl) {
         playerNameEl.innerHTML = `<i class="fas fa-user-astronaut"></i> Entrar`;
     }
@@ -24,31 +25,70 @@ function atualizarHeader() {
     }
     
     let titulo = "🌿 Iniciante Saudável";
-    if (pontosAtuais >= 100) titulo = "🍎 Six Seven do Alimentos";
-    if (pontosAtuais >= 250) titulo = "💪 Farmou Aura no Exercício";
-    if (pontosAtuais >= 500) titulo = "🫡 Capitão Saúde";
     if (pontosAtuais >= 1000) titulo = "👑 Mestre da Saúde Supremo";
+    else if (pontosAtuais >= 500) titulo = "🫡 Capitão Saúde";
+    else if (pontosAtuais >= 250) titulo = "💪 Farmou Aura no Exercício";
+    else if (pontosAtuais >= 100) titulo = "🍎 Six Seven do Alimentos";
     
     if (playerTitleEl) playerTitleEl.innerText = titulo;
 }
 
-function adicionarPontos(qtd) {
-    const usuario = getUsuarioAtual();
+// ========== ADICIONAR PONTOS (FUNÇÃO GLOBAL) ==========
+window.adicionarPontos = async function(qtd) {
+    console.log('⭐ Adicionando ' + qtd + ' pontos...');
+    
+    const usuario = typeof getUsuarioAtual !== 'undefined' ? getUsuarioAtual() : null;
     
     if (usuario) {
-        const novosPontos = (usuario.pontos || 0) + qtd;
-        atualizarPontosUsuario(usuario.apelido, novosPontos);
-        carregarPontosDoUsuario();
+        // Atualizar pontos do usuário logado
+        usuario.pontos = (usuario.pontos || 0) + qtd;
+        
+        // Salvar no localStorage
+        if (typeof salvarUsuarioAtual !== 'undefined') {
+            salvarUsuarioAtual(usuario);
+        }
+        localStorage.setItem("pontos", usuario.pontos.toString());
+        
+        // Salvar no Supabase
+        if (typeof atualizarPontosDB !== 'undefined' && typeof supabaseClient !== 'undefined' && supabaseClient) {
+            const sucesso = await atualizarPontosDB(
+                usuario.apelido,
+                usuario.pontos,
+                usuario.quizzes_completados || []
+            );
+            
+            if (sucesso) {
+                console.log('✅ Pontos salvos no Supabase:', usuario.pontos);
+            } else {
+                console.warn('⚠️ Não foi possível salvar no Supabase');
+            }
+        }
+        
+        // Atualizar pontos globais
+        window.pontos = usuario.pontos;
     } else {
-        pontos += qtd;
-        localStorage.setItem("pontos", pontos);
+        // Usuário não logado - usar variável global
+        window.pontos = (window.pontos || 0) + qtd;
+        localStorage.setItem("pontos", window.pontos.toString());
+        console.log('⭐ Pontos (offline):', window.pontos);
     }
     
-    atualizarHeader();
-    if (typeof atualizarRanking !== 'undefined') atualizarRanking();
-    if (typeof atualizarEstatisticas !== 'undefined') atualizarEstatisticas();
-}
+    // Atualizar toda a interface
+    if (typeof atualizarHeader !== 'undefined') {
+        atualizarHeader();
+    }
+    if (typeof atualizarRanking !== 'undefined') {
+        await atualizarRanking();
+    }
+    if (typeof atualizarEstatisticas !== 'undefined') {
+        atualizarEstatisticas();
+    }
+    
+    const pontosFinais = usuario ? usuario.pontos : window.pontos;
+    console.log('⭐ Pontos atualizados:', pontosFinais);
+};
 
+// ========== CARREGAR PONTOS DO USUÁRIO ==========
 function carregarPontosParaQuiz() {
     const usuario = getUsuarioAtual();
     if (usuario) {
@@ -59,6 +99,7 @@ function carregarPontosParaQuiz() {
     return pontos;
 }
 
+// ========== CONFIGURAÇÃO DOS TEMAS ==========
 const temasConfig = {
     alimentacao: { nome: "Alimentação Saudável", emoji: "🍎", cor: "#48bb78", corEscura: "#38a169" },
     exercicios: { nome: "Atividade Física", emoji: "🤸", cor: "#ed8936", corEscura: "#dd6b20" },
@@ -72,17 +113,68 @@ const temasConfig = {
     meioambiente: { nome: "Meio Ambiente", emoji: "🌍", cor: "#4fd1c5", corEscura: "#38b2ac" }
 };
 
+// ========== CARREGAR CARDS DE TEMAS ==========
 async function carregarCards() {
+    const container = document.getElementById("cardsContainer");
+    if (!container) return;
+    
     try {
-        const response = await fetch("data/conteudos.json");
-        const temas = await response.json();
-        const container = document.getElementById("cardsContainer");
-        if (!container) return;
+        // Tentar carregar do Supabase primeiro
+        let temas = null;
+        
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('conteudos')
+                    .select('tema_id, tema_nome, tema_emoji')
+                    .eq('ativo', true);
+                
+                if (!error && data && data.length > 0) {
+                    // Agrupar por tema
+                    const temasAgrupados = {};
+                    data.forEach(item => {
+                        if (!temasAgrupados[item.tema_id]) {
+                            temasAgrupados[item.tema_id] = {
+                                nome: item.tema_nome,
+                                emoji: item.tema_emoji,
+                                numSubtemas: 0
+                            };
+                        }
+                        temasAgrupados[item.tema_id].numSubtemas++;
+                    });
+                    temas = temasAgrupados;
+                    console.log('✅ Temas carregados do Supabase:', Object.keys(temas).length);
+                }
+            } catch (err) {
+                console.warn('⚠️ Erro ao carregar temas do Supabase:', err.message);
+            }
+        }
+        
+        // Fallback: carregar do JSON local
+        if (!temas) {
+            const response = await fetch("data/conteudos.json");
+            const dadosJson = await response.json();
+            temas = {};
+            
+            for (let [chave, valor] of Object.entries(dadosJson)) {
+                temas[chave] = {
+                    nome: valor.titulo,
+                    emoji: valor.titulo?.split(' ')[0] || '📚',
+                    numSubtemas: valor.subtemas?.length || 5
+                };
+            }
+            console.log('✅ Temas carregados do JSON local');
+        }
+        
         container.innerHTML = "";
         
         for (let [chave, valor] of Object.entries(temas)) {
-            const config = temasConfig[chave] || { nome: chave, emoji: "📚", cor: "#667eea", corEscura: "#764ba2" };
-            const numSubtemas = valor.subtemas ? valor.subtemas.length : 5;
+            const config = temasConfig[chave] || { 
+                nome: valor.nome || chave, 
+                emoji: valor.emoji || "📚", 
+                cor: "#667eea", 
+                corEscura: "#764ba2" 
+            };
             
             const card = document.createElement("div");
             card.className = "card";
@@ -94,7 +186,7 @@ async function carregarCards() {
                     <h3>${config.nome}</h3>
                 </div>
                 <div class="card-content">
-                    <p>📚 ${numSubtemas} temas para aprender!</p>
+                    <p>📚 ${valor.numSubtemas || 5} temas para aprender!</p>
                     <div class="card-buttons">
                         <button class="btn btn-aprender" data-tema="${chave}">📖 Aprender</button>
                     </div>
@@ -103,6 +195,7 @@ async function carregarCards() {
             container.appendChild(card);
         }
         
+        // Adicionar eventos aos botões
         document.querySelectorAll(".btn-aprender").forEach(function(btn) {
             btn.addEventListener("click", function(e) {
                 e.stopPropagation();
@@ -113,24 +206,41 @@ async function carregarCards() {
             });
         });
         
+        // Adicionar evento de clique nos cards também
+        document.querySelectorAll(".card").forEach(function(card) {
+            card.addEventListener("click", function() {
+                const tema = card.getAttribute("data-tema");
+                if (typeof abrirAprendizado !== 'undefined') {
+                    abrirAprendizado(tema);
+                }
+            });
+        });
+        
     } catch (error) {
-        console.error("Erro:", error);
-        const container = document.getElementById("cardsContainer");
-        if (container) {
-            container.innerHTML = '<div style="text-align:center;padding:50px;color:white;">❌ Erro ao carregar temas</div>';
-        }
+        console.error("❌ Erro ao carregar cards:", error);
+        container.innerHTML = `
+            <div style="text-align:center; padding:50px; color:white;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 40px;"></i>
+                <p>❌ Erro ao carregar temas. Recarregue a página.</p>
+                <button onclick="location.reload()" class="btn-hero" style="margin-top: 20px;">
+                    🔄 Recarregar
+                </button>
+            </div>
+        `;
     }
 }
 
-// Inicialização
-document.addEventListener("DOMContentLoaded", function() {
+// ========== INICIALIZAÇÃO ==========
+document.addEventListener("DOMContentLoaded", async function() {
+    console.log('🚀 Inicializando site...');
+    
     // Evento de clique no nome do jogador
     const playerNameEl = document.getElementById("playerName");
     if (playerNameEl) {
         playerNameEl.addEventListener("click", function() {
             const usuario = getUsuarioAtual();
             if (usuario) {
-                const opcao = confirm(usuario.apelido + ", deseja sair da sua conta?");
+                const opcao = confirm(`${usuario.apelido} (${usuario.idade || '?'}a)\n⭐ ${usuario.pontos || 0} pontos\n🏅 ${usuario.titulo || '🌿 Iniciante'}\n\nDeseja sair da sua conta?`);
                 if (opcao && typeof fazerLogout !== 'undefined') {
                     fazerLogout();
                 }
@@ -142,23 +252,31 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
     
-    // Fechar modal do quiz
+    // Fechar modal do quiz ao clicar no X
     const closeModal = document.querySelector("#modalQuiz .close");
     if (closeModal) {
         closeModal.onclick = function() {
             document.getElementById("modalQuiz").style.display = "none";
+            document.getElementById("quizArea").innerHTML = "";
         };
     }
     
     // Fechar modais ao clicar fora
     window.onclick = function(e) {
-        if (e.target === document.getElementById("modalQuiz")) {
-            document.getElementById("modalQuiz").style.display = "none";
+        const modalQuiz = document.getElementById("modalQuiz");
+        const modalAprendizado = document.getElementById("modalAprendizado");
+        const modalAuth = document.getElementById("modalAuth");
+        
+        if (e.target === modalQuiz) {
+            modalQuiz.style.display = "none";
+            document.getElementById("quizArea").innerHTML = "";
         }
-        if (e.target === document.getElementById("modalAprendizado")) {
-            document.getElementById("modalAprendizado").style.display = "none";
+        if (e.target === modalAprendizado) {
+            if (typeof fecharModalAprendizado !== 'undefined') {
+                fecharModalAprendizado();
+            }
         }
-        if (e.target === document.getElementById("modalAuth")) {
+        if (e.target === modalAuth) {
             if (typeof fecharModalAuth !== 'undefined') {
                 fecharModalAuth();
             }
@@ -166,7 +284,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
     
     // Carregar dados
-    carregarCards();
+    await carregarCards();
     
     // Carregar usuário logado
     if (typeof carregarUsuarioLogado !== 'undefined') {
@@ -176,15 +294,55 @@ document.addEventListener("DOMContentLoaded", function() {
         carregarPontosDoUsuario();
     }
     
-    atualizarHeader();
+    // Atualizar header e ranking
+    if (typeof atualizarHeader !== 'undefined') {
+        atualizarHeader();
+    }
     
-    if (typeof atualizarRanking !== 'undefined') {
-        atualizarRanking();
-    }
-    if (typeof atualizarEstatisticas !== 'undefined') {
-        atualizarEstatisticas();
-    }
+    // Aguardar Supabase inicializar
+    setTimeout(async () => {
+        if (typeof atualizarRanking !== 'undefined') {
+            await atualizarRanking();
+        }
+        if (typeof atualizarEstatisticas !== 'undefined') {
+            atualizarEstatisticas();
+        }
+    }, 1500);
+    
+    console.log('✅ Site inicializado!');
+    console.log('👤 Usuário:', getUsuarioAtual()?.apelido || 'Não logado');
+    console.log('⭐ Pontos:', getUsuarioAtual()?.pontos || pontos);
 });
 
-window.adicionarPontos = adicionarPontos;
+// ========== FUNÇÕES GLOBAIS ==========
+
+// Função para lidar com clique no player (chamada do HTML)
+window.handlePlayerClick = function() {
+    const usuario = getUsuarioAtual();
+    
+    if (usuario) {
+        const opcao = confirm(
+            `🎮 ${usuario.apelido}\n` +
+            `⭐ ${usuario.pontos || 0} pontos\n` +
+            `🏅 ${usuario.titulo || '🌿 Iniciante'}\n` +
+            `📊 ${(usuario.quizzes_completados || []).length} quizzes feitos\n\n` +
+            'Clique OK para sair ou Cancelar para continuar'
+        );
+        
+        if (opcao && typeof fazerLogout !== 'undefined') {
+            fazerLogout();
+        }
+    } else {
+        if (typeof mostrarModalAuth !== 'undefined') {
+            mostrarModalAuth();
+        }
+    }
+};
+
+// Exportar funções principais
+window.adicionarPontos = window.adicionarPontos; // já definida como async
 window.carregarPontosParaQuiz = carregarPontosParaQuiz;
+window.atualizarHeader = atualizarHeader;
+window.carregarCards = carregarCards;
+
+console.log("✅ main.js carregado com sucesso! (v3.0 - Supabase)");
