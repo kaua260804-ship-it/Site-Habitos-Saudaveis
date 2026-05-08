@@ -1,5 +1,5 @@
 // ============================================
-// PAINEL ADMIN - GERENCIAMENTO COMPLETO
+// PAINEL ADMIN - GERENCIAMENTO COMPLETO (CORRIGIDO)
 // ============================================
 
 let adminLogado = false;
@@ -10,7 +10,6 @@ async function verificarAdmin() {
     const usuario = typeof getUsuarioAtual !== 'undefined' ? getUsuarioAtual() : null;
     if (!usuario) return false;
     
-    // Verificar cache primeiro
     const cacheAdmin = sessionStorage.getItem('admin_status');
     if (cacheAdmin === 'true' && sessionStorage.getItem('admin_apelido') === usuario.apelido) {
         adminLogado = true;
@@ -23,7 +22,7 @@ async function verificarAdmin() {
             .from('admins')
             .select('*')
             .eq('usuario_apelido', usuario.apelido)
-            .single();
+            .maybeSingle();
         
         if (data) {
             adminLogado = true;
@@ -49,34 +48,35 @@ async function abrirAdmin() {
     const panel = document.getElementById('adminPanel');
     if (!panel) {
         criarPainelAdmin();
+        await carregarTodosSelects();
     }
     
     document.getElementById('adminPanel').classList.add('active');
     carregarDashboard();
 }
 
-// Criar painel admin dinamicamente
+// Criar painel admin
 function criarPainelAdmin() {
     const panel = document.createElement('div');
     panel.id = 'adminPanel';
     panel.className = 'admin-panel';
     panel.innerHTML = `
-        <div class="admin-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: white; border-radius: 20px 20px 0 0;">
-            <div>
-                <h2>🔧 Painel Administrativo</h2>
-                <p style="color: #718096; font-size: 14px;">Gerencie quizzes, links e conteúdos</p>
+        <div class="admin-container">
+            <div class="admin-header">
+                <div>
+                    <h2>🔧 Painel Administrativo</h2>
+                    <p style="color: #718096; font-size: 14px;">Gerencie quizzes, links e conteúdos</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-admin success" onclick="exportarDados()">
+                        <i class="fas fa-download"></i> Exportar
+                    </button>
+                    <button class="btn-admin danger" onclick="fecharAdmin()">
+                        <i class="fas fa-times"></i> Fechar
+                    </button>
+                </div>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-admin success" onclick="exportarDados()">
-                    <i class="fas fa-download"></i> Exportar
-                </button>
-                <button class="btn-admin danger" onclick="fecharAdmin()">
-                    <i class="fas fa-times"></i> Fechar
-                </button>
-            </div>
-        </div>
-        
-        <div style="background: white; padding: 20px; border-radius: 0 0 20px 20px; max-height: 80vh; overflow-y: auto;">
+            
             <!-- Stats -->
             <div class="admin-stats" id="adminStats">
                 <div class="admin-stat">
@@ -121,13 +121,13 @@ function criarPainelAdmin() {
                         <div class="form-group">
                             <label>Tema</label>
                             <select id="quizTema" onchange="atualizarSubtopicoSelect('quizTema', 'quizSubtopico')">
-                                <option value="">Selecione...</option>
+                                <option value="">Selecione um tema...</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Subtópico</label>
                             <select id="quizSubtopico">
-                                <option value="">Selecione...</option>
+                                <option value="">Primeiro selecione o tema...</option>
                             </select>
                         </div>
                     </div>
@@ -155,7 +155,7 @@ function criarPainelAdmin() {
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Resposta Correta (0-3)</label>
+                            <label>Resposta Correta (0=A, 1=B, 2=C, 3=D)</label>
                             <input type="number" id="quizCorreta" min="0" max="3" value="0">
                         </div>
                         <div class="form-group">
@@ -168,8 +168,8 @@ function criarPainelAdmin() {
                     </button>
                 </div>
                 
-                <h3>📋 Quizzes Existentes</h3>
-                <div id="listaQuizzes"></div>
+                <h3 style="margin-top: 20px;">📋 Quizzes Existentes</h3>
+                <div id="listaQuizzes" style="overflow-x: auto;"></div>
             </div>
             
             <!-- Links -->
@@ -178,14 +178,14 @@ function criarPainelAdmin() {
                     <h3>➕ Adicionar Link</h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Subtópico ID</label>
+                            <label>Subtópico</label>
                             <select id="linkSubtopico">
-                                <option value="">Selecione...</option>
+                                <option value="">Carregando subtópicos...</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Nome do Link</label>
-                            <input type="text" id="linkNome" placeholder="Nome do site/recurso">
+                            <input type="text" id="linkNome" placeholder="Ex: Toda Matéria - Pirâmide Alimentar">
                         </div>
                     </div>
                     <div class="form-group">
@@ -197,37 +197,37 @@ function criarPainelAdmin() {
                     </button>
                 </div>
                 
-                <h3>📋 Links Existentes</h3>
-                <div id="listaLinks"></div>
+                <h3 style="margin-top: 20px;">📋 Links Existentes</h3>
+                <div id="listaLinks" style="overflow-x: auto;"></div>
             </div>
             
             <!-- Conteúdos -->
             <div class="admin-content" id="tab-conteudos">
                 <div class="admin-form">
-                    <h3>➕ Adicionar Conteúdo</h3>
+                    <h3>➕ Adicionar/Editar Conteúdo</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label>Tema</label>
-                            <select id="conteudoTema" onchange="atualizarSubtopicoSelect('conteudoTema', 'conteudoSubtopico')">
+                            <select id="conteudoTema">
                                 <option value="">Selecione ou digite novo...</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Subtópico ID</label>
+                            <label>Subtópico ID (sem espaços)</label>
                             <input type="text" id="conteudoSubtopicoid" placeholder="ex: alimentacao_frutas">
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Nome do Subtópico</label>
-                        <input type="text" id="conteudoNome" placeholder="Nome do subtópico">
+                        <input type="text" id="conteudoNome" placeholder="Ex: Frutas da Estação">
                     </div>
                     <div class="form-group">
                         <label>Resumo</label>
-                        <textarea id="conteudoResumo" placeholder="Resumo curto..."></textarea>
+                        <textarea id="conteudoResumo" placeholder="Resumo curto para o card..."></textarea>
                     </div>
                     <div class="form-group">
                         <label>Conteúdo Completo</label>
-                        <textarea id="conteudoCompleto" placeholder="Texto completo do conteúdo..."></textarea>
+                        <textarea id="conteudoCompleto" placeholder="Texto completo..." style="min-height: 150px;"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Dica/Desafio</label>
@@ -242,53 +242,228 @@ function criarPainelAdmin() {
             <!-- Temas -->
             <div class="admin-content" id="tab-temas">
                 <div class="admin-form">
-                    <h3>➕ Adicionar Tema</h3>
+                    <h3>➕ Adicionar Novo Tema</h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>ID do Tema</label>
+                            <label>ID do Tema (sem espaços)</label>
                             <input type="text" id="temaId" placeholder="ex: esportes">
                         </div>
                         <div class="form-group">
                             <label>Nome do Tema</label>
-                            <input type="text" id="temaNome" placeholder="Nome do tema">
+                            <input type="text" id="temaNome" placeholder="Ex: Esportes Radicais">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Emoji</label>
-                        <input type="text" id="temaEmoji" placeholder="🍎">
+                        <label>Emoji do Tema</label>
+                        <input type="text" id="temaEmoji" placeholder="🏄">
                     </div>
                     <button class="btn-admin" onclick="salvarTema()">
                         <i class="fas fa-save"></i> Salvar Tema
                     </button>
                 </div>
+                
+                <h3 style="margin-top: 20px;">📋 Temas Existentes</h3>
+                <div id="listaTemas"></div>
             </div>
         </div>
     `;
     
     document.body.appendChild(panel);
-    carregarTemasSelect();
 }
 
-// Fechar admin
-function fecharAdmin() {
-    document.getElementById('adminPanel').classList.remove('active');
+// ========== CARREGAR SELECTS ==========
+
+async function carregarTodosSelects() {
+    await carregarTemasNoSelect('quizTema');
+    await carregarTemasNoSelect('conteudoTema');
+    await carregarSubtopicosNoSelect('linkSubtopico');
 }
 
-// Mostrar tab
-function mostrarTabAdmin(tab) {
-    document.querySelectorAll('.admin-content').forEach(c => c.classList.remove('active'));
-    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+async function carregarTemasNoSelect(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
     
-    document.getElementById(`tab-${tab}`).classList.add('active');
-    event.target.closest('.admin-tab').classList.add('active');
-    
-    if (tab === 'quizzes') carregarQuizzes();
-    if (tab === 'links') carregarLinks();
-    if (tab === 'conteudos') carregarConteudos();
-    if (tab === 'temas') carregarTemas();
+    try {
+        const { data } = await supabaseClient
+            .from('conteudos')
+            .select('tema_id, tema_nome, tema_emoji')
+            .order('tema_id');
+        
+        // Remover duplicados
+        const temasUnicos = [];
+        const ids = new Set();
+        data?.forEach(item => {
+            if (!ids.has(item.tema_id)) {
+                ids.add(item.tema_id);
+                temasUnicos.push(item);
+            }
+        });
+        
+        select.innerHTML = '<option value="">Selecione um tema...</option>';
+        temasUnicos.forEach(tema => {
+            select.innerHTML += `<option value="${tema.tema_id}">${tema.tema_emoji || '📚'} ${tema.tema_nome}</option>`;
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar temas:', error);
+        select.innerHTML = '<option value="">Erro ao carregar</option>';
+    }
 }
 
-// Carregar dashboard
+async function carregarSubtopicosNoSelect(selectId, temaId = null) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    
+    try {
+        let query = supabaseClient
+            .from('conteudos')
+            .select('subtopico_id, subtopico_nome, tema_nome')
+            .order('subtopico_nome');
+        
+        if (temaId) {
+            query = query.eq('tema_id', temaId);
+        }
+        
+        const { data } = await query;
+        
+        select.innerHTML = '<option value="">Selecione um subtópico...</option>';
+        data?.forEach(item => {
+            select.innerHTML += `<option value="${item.subtopico_id}">${item.subtopico_nome} (${item.tema_nome})</option>`;
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar subtópicos:', error);
+        select.innerHTML = '<option value="">Erro ao carregar</option>';
+    }
+}
+
+// Atualizar select de subtópicos baseado no tema
+async function atualizarSubtopicoSelect(temaSelectId, subtopicoSelectId) {
+    const temaId = document.getElementById(temaSelectId)?.value;
+    if (!temaId) return;
+    
+    await carregarSubtopicosNoSelect(subtopicoSelectId, temaId);
+}
+
+// ========== CARREGAR LISTAS ==========
+
+async function carregarQuizzes() {
+    const { data } = await supabaseClient
+        .from('quizzes')
+        .select('*')
+        .order('criado_em', { ascending: false });
+    
+    const container = document.getElementById('listaQuizzes');
+    if (!container) return;
+    
+    if (!data || data.length === 0) {
+        container.innerHTML = '<p style="color: #718096; padding: 20px;">Nenhum quiz cadastrado</p>';
+        return;
+    }
+    
+    let html = '<table class="admin-table"><tr><th>Subtópico</th><th>Pergunta</th><th>Correta</th><th>Pontos</th><th>Ações</th></tr>';
+    data.forEach(q => {
+        const opcoes = [q.opcao_a, q.opcao_b, q.opcao_c, q.opcao_d];
+        html += `
+            <tr>
+                <td><small>${q.subtopico_nome}</small></td>
+                <td>${q.pergunta.substring(0, 40)}...</td>
+                <td>${String.fromCharCode(65 + q.correta)}) ${opcoes[q.correta]?.substring(0, 15)}</td>
+                <td>${q.pontos}</td>
+                <td>
+                    <button class="btn-admin" onclick="excluirQuiz(${q.id})" style="padding: 5px 10px; font-size: 11px;">
+                        🗑️ Excluir
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    html += '</table>';
+    container.innerHTML = html;
+}
+
+async function carregarLinks() {
+    const { data } = await supabaseClient
+        .from('links')
+        .select('*')
+        .order('criado_em', { ascending: false });
+    
+    const container = document.getElementById('listaLinks');
+    if (!container) return;
+    
+    if (!data || data.length === 0) {
+        container.innerHTML = '<p style="color: #718096; padding: 20px;">Nenhum link cadastrado</p>';
+        return;
+    }
+    
+    let html = '<table class="admin-table"><tr><th>Subtópico</th><th>Nome</th><th>URL</th><th>Ações</th></tr>';
+    data.forEach(l => {
+        html += `
+            <tr>
+                <td><small>${l.subtopico_id}</small></td>
+                <td>${l.nome}</td>
+                <td><a href="${l.url}" target="_blank" style="color: #667eea;">Abrir 🔗</a></td>
+                <td>
+                    <button class="btn-admin" onclick="excluirLink(${l.id})" style="padding: 5px 10px; font-size: 11px;">
+                        🗑️
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    html += '</table>';
+    container.innerHTML = html;
+}
+
+async function carregarConteudos() {
+    const { data } = await supabaseClient
+        .from('conteudos')
+        .select('*')
+        .order('tema_id');
+    
+    // Só mostra no console por enquanto
+    console.log('📚 Conteúdos:', data?.length || 0);
+}
+
+async function carregarTemas() {
+    const { data } = await supabaseClient
+        .from('conteudos')
+        .select('tema_id, tema_nome, tema_emoji')
+        .order('tema_id');
+    
+    const container = document.getElementById('listaTemas');
+    if (!container) return;
+    
+    const temasUnicos = [];
+    const ids = new Set();
+    data?.forEach(item => {
+        if (!ids.has(item.tema_id)) {
+            ids.add(item.tema_id);
+            temasUnicos.push(item);
+        }
+    });
+    
+    if (temasUnicos.length === 0) {
+        container.innerHTML = '<p style="color: #718096; padding: 20px;">Nenhum tema cadastrado</p>';
+        return;
+    }
+    
+    let html = '<table class="admin-table"><tr><th>ID</th><th>Nome</th><th>Emoji</th></tr>';
+    temasUnicos.forEach(t => {
+        html += `
+            <tr>
+                <td>${t.tema_id}</td>
+                <td>${t.tema_nome}</td>
+                <td style="font-size: 30px;">${t.tema_emoji || '📚'}</td>
+            </tr>
+        `;
+    });
+    html += '</table>';
+    container.innerHTML = html;
+}
+
+// ========== CARREGAR DASHBOARD ==========
+
 async function carregarDashboard() {
     try {
         const { count: qCount } = await supabaseClient.from('quizzes').select('*', { count: 'exact', head: true });
@@ -305,21 +480,46 @@ async function carregarDashboard() {
     }
 }
 
-// Salvar quiz
+// ========== MOSTRAR TABS ==========
+
+function mostrarTabAdmin(tab) {
+    document.querySelectorAll('.admin-content').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    
+    const tabContent = document.getElementById(`tab-${tab}`);
+    const tabButton = document.querySelector(`.admin-tab[onclick*="${tab}"]`);
+    
+    if (tabContent) tabContent.classList.add('active');
+    if (tabButton) tabButton.classList.add('active');
+    
+    if (tab === 'quizzes') carregarQuizzes();
+    if (tab === 'links') {
+        carregarSubtopicosNoSelect('linkSubtopico');
+        carregarLinks();
+    }
+    if (tab === 'conteudos') carregarConteudos();
+    if (tab === 'temas') carregarTemas();
+}
+
+// ========== SALVAR DADOS ==========
+
 async function salvarQuiz() {
-    const subtopicoId = document.getElementById('quizSubtopico').value;
-    const tema = document.getElementById('quizTema').value;
-    const subtopicoNome = document.getElementById('quizSubtopico').selectedOptions[0]?.text || '';
-    const pergunta = document.getElementById('quizPergunta').value;
-    const opcaoA = document.getElementById('quizOpcaoA').value;
-    const opcaoB = document.getElementById('quizOpcaoB').value;
-    const opcaoC = document.getElementById('quizOpcaoC').value;
-    const opcaoD = document.getElementById('quizOpcaoD').value;
+    const temaSelect = document.getElementById('quizTema');
+    const subtopicoSelect = document.getElementById('quizSubtopico');
+    
+    const tema = temaSelect.value;
+    const subtopicoId = subtopicoSelect.value;
+    const subtopicoNome = subtopicoSelect.selectedOptions[0]?.text.split(' (')[0] || '';
+    const pergunta = document.getElementById('quizPergunta').value.trim();
+    const opcaoA = document.getElementById('quizOpcaoA').value.trim();
+    const opcaoB = document.getElementById('quizOpcaoB').value.trim();
+    const opcaoC = document.getElementById('quizOpcaoC').value.trim();
+    const opcaoD = document.getElementById('quizOpcaoD').value.trim();
     const correta = parseInt(document.getElementById('quizCorreta').value);
     const pontos = parseInt(document.getElementById('quizPontos').value);
     
-    if (!subtopicoId || !pergunta) {
-        alert('Preencha todos os campos!');
+    if (!tema || !subtopicoId || !pergunta || !opcaoA || !opcaoB) {
+        mostrarToast('Preencha pelo menos tema, subtópico, pergunta, opção A e B!', 'warning');
         return;
     }
     
@@ -337,81 +537,56 @@ async function salvarQuiz() {
     });
     
     if (error) {
-        alert('Erro: ' + error.message);
+        mostrarToast('Erro: ' + error.message, 'error');
     } else {
         mostrarToast('✅ Quiz salvo com sucesso!', 'success');
         carregarQuizzes();
-        limparFormQuiz();
+        carregarDashboard();
+        document.getElementById('quizPergunta').value = '';
+        document.getElementById('quizOpcaoA').value = '';
+        document.getElementById('quizOpcaoB').value = '';
+        document.getElementById('quizOpcaoC').value = '';
+        document.getElementById('quizOpcaoD').value = '';
     }
 }
 
-// Carregar quizzes existentes
-async function carregarQuizzes() {
-    const { data } = await supabaseClient.from('quizzes').select('*').order('criado_em', { ascending: false });
-    const container = document.getElementById('listaQuizzes');
-    
-    if (!data || data.length === 0) {
-        container.innerHTML = '<p style="color: #718096;">Nenhum quiz cadastrado</p>';
-        return;
-    }
-    
-    let html = '<table class="admin-table"><tr><th>Subtópico</th><th>Pergunta</th><th>Ações</th></tr>';
-    data.forEach(q => {
-        html += `
-            <tr>
-                <td>${q.subtopico_nome}</td>
-                <td>${q.pergunta.substring(0, 50)}...</td>
-                <td>
-                    <button class="btn-admin" onclick="excluirQuiz(${q.id})" style="padding: 5px 10px; font-size: 12px;">
-                        🗑️
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-    html += '</table>';
-    container.innerHTML = html;
-}
-
-// Excluir quiz
-async function excluirQuiz(id) {
-    if (!confirm('Excluir este quiz?')) return;
-    await supabaseClient.from('quizzes').delete().eq('id', id);
-    carregarQuizzes();
-}
-
-// Salvar link
 async function salvarLink() {
     const subtopicoId = document.getElementById('linkSubtopico').value;
-    const nome = document.getElementById('linkNome').value;
-    const url = document.getElementById('linkUrl').value;
+    const nome = document.getElementById('linkNome').value.trim();
+    const url = document.getElementById('linkUrl').value.trim();
     
     if (!subtopicoId || !nome || !url) {
-        alert('Preencha todos os campos!');
+        mostrarToast('Preencha todos os campos!', 'warning');
         return;
     }
     
-    const { error } = await supabaseClient.from('links').insert({ subtopico_id: subtopicoId, nome, url });
+    const { error } = await supabaseClient.from('links').insert({
+        subtopico_id: subtopicoId,
+        nome,
+        url
+    });
     
     if (error) {
-        alert('Erro: ' + error.message);
+        mostrarToast('Erro: ' + error.message, 'error');
     } else {
         mostrarToast('✅ Link salvo!', 'success');
         carregarLinks();
+        carregarDashboard();
+        document.getElementById('linkNome').value = '';
+        document.getElementById('linkUrl').value = '';
     }
 }
 
-// Salvar conteúdo
 async function salvarConteudo() {
     const temaId = document.getElementById('conteudoTema').value;
-    const subtopicoId = document.getElementById('conteudoSubtopicoid').value;
-    const nome = document.getElementById('conteudoNome').value;
-    const resumo = document.getElementById('conteudoResumo').value;
-    const completo = document.getElementById('conteudoCompleto').value;
-    const dica = document.getElementById('conteudoDica').value;
+    const subtopicoId = document.getElementById('conteudoSubtopicoid').value.trim();
+    const nome = document.getElementById('conteudoNome').value.trim();
+    const resumo = document.getElementById('conteudoResumo').value.trim();
+    const completo = document.getElementById('conteudoCompleto').value.trim();
+    const dica = document.getElementById('conteudoDica').value.trim();
     
     if (!temaId || !subtopicoId || !nome) {
-        alert('Preencha os campos obrigatórios!');
+        mostrarToast('Preencha tema, ID e nome!', 'warning');
         return;
     }
     
@@ -422,86 +597,144 @@ async function salvarConteudo() {
         resumo,
         conteudo_completo: completo,
         dica_desafio: dica
-    });
+    }, { onConflict: 'subtopico_id' });
     
     if (error) {
-        alert('Erro: ' + error.message);
+        mostrarToast('Erro: ' + error.message, 'error');
     } else {
         mostrarToast('✅ Conteúdo salvo!', 'success');
+        carregarDashboard();
     }
 }
 
-// Carregar temas nos selects
-async function carregarTemasSelect() {
-    const { data } = await supabaseClient.from('conteudos').select('tema_id, tema_nome').order('tema_id');
+async function salvarTema() {
+    const temaId = document.getElementById('temaId').value.trim();
+    const temaNome = document.getElementById('temaNome').value.trim();
+    const temaEmoji = document.getElementById('temaEmoji').value.trim() || '📚';
     
-    // Remover duplicados
-    const temasUnicos = [...new Map(data?.map(item => [item.tema_id, item])).values()];
+    if (!temaId || !temaNome) {
+        mostrarToast('Preencha ID e nome do tema!', 'warning');
+        return;
+    }
     
-    const selects = ['quizTema', 'conteudoTema'];
-    selects.forEach(selectId => {
-        const select = document.getElementById(selectId);
-        if (!select) return;
-        
-        select.innerHTML = '<option value="">Selecione...</option>';
-        temasUnicos.forEach(tema => {
-            select.innerHTML += `<option value="${tema.tema_id}">${tema.tema_nome}</option>`;
-        });
-    });
+    // Criar um subtópico placeholder para o tema existir
+    const subtopicoId = temaId + '_inicial';
+    
+    const { error } = await supabaseClient.from('conteudos').upsert({
+        tema_id: temaId,
+        tema_nome: temaNome,
+        tema_emoji: temaEmoji,
+        subtopico_id: subtopicoId,
+        subtopico_nome: 'Introdução',
+        resumo: 'Conteúdo introdutório sobre ' + temaNome
+    }, { onConflict: 'subtopico_id' });
+    
+    if (error) {
+        mostrarToast('Erro: ' + error.message, 'error');
+    } else {
+        mostrarToast('✅ Tema criado! Agora adicione conteúdos a ele.', 'success');
+        carregarTemas();
+        carregarTodosSelects();
+        carregarDashboard();
+    }
 }
 
-// Atualizar select de subtópicos
-async function atualizarSubtopicoSelect(temaSelectId, subtopicoSelectId) {
-    const temaId = document.getElementById(temaSelectId).value;
-    const subtopicoSelect = document.getElementById(subtopicoSelectId);
-    
-    if (!temaId || !subtopicoSelect) return;
-    
-    const { data } = await supabaseClient
-        .from('conteudos')
-        .select('subtopico_id, subtopico_nome')
-        .eq('tema_id', temaId);
-    
-    subtopicoSelect.innerHTML = '<option value="">Selecione...</option>';
-    data?.forEach(item => {
-        subtopicoSelect.innerHTML += `<option value="${item.subtopico_id}">${item.subtopico_nome}</option>`;
-    });
+// ========== EXCLUIR ==========
+
+async function excluirQuiz(id) {
+    if (!confirm('Excluir este quiz permanentemente?')) return;
+    await supabaseClient.from('quizzes').delete().eq('id', id);
+    carregarQuizzes();
+    carregarDashboard();
+    mostrarToast('Quiz excluído!', 'info');
 }
 
-// Exportar dados
+async function excluirLink(id) {
+    if (!confirm('Excluir este link?')) return;
+    await supabaseClient.from('links').delete().eq('id', id);
+    carregarLinks();
+    carregarDashboard();
+    mostrarToast('Link excluído!', 'info');
+}
+
+// ========== EXPORTAR ==========
+
 async function exportarDados() {
-    const { data: quizzes } = await supabaseClient.from('quizzes').select('*');
-    const { data: links } = await supabaseClient.from('links').select('*');
+    const [quizzes, links, conteudos] = await Promise.all([
+        supabaseClient.from('quizzes').select('*'),
+        supabaseClient.from('links').select('*'),
+        supabaseClient.from('conteudos').select('*')
+    ]);
     
-    const dados = { quizzes, links };
+    const dados = {
+        quizzes: quizzes.data,
+        links: links.data,
+        conteudos: conteudos.data,
+        exportado_em: new Date().toISOString()
+    };
+    
     const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'backup_dados.json';
+    a.download = 'backup_habitos_saudaveis_' + new Date().toISOString().split('T')[0] + '.json';
     a.click();
+    URL.revokeObjectURL(url);
     
-    mostrarToast('✅ Dados exportados!', 'success');
+    mostrarToast('✅ Dados exportados com sucesso!', 'success');
 }
 
-// Adicionar botão admin
+// ========== FECHAR ==========
+
+function fecharAdmin() {
+    const panel = document.getElementById('adminPanel');
+    if (panel) panel.classList.remove('active');
+}
+
+// ========== BOTÃO ADMIN ==========
+
 function adicionarBotaoAdmin() {
+    // Remover botão existente se houver
+    const existente = document.querySelector('.btn-admin-flutuante');
+    if (existente) existente.remove();
+    
     const btn = document.createElement('button');
     btn.className = 'btn-admin-flutuante';
     btn.innerHTML = '🔧';
-    btn.title = 'Painel Admin';
+    btn.title = 'Painel Administrativo';
     btn.onclick = abrirAdmin;
+    btn.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        font-size: 24px;
+        z-index: 9999;
+        box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    btn.onmouseenter = () => btn.style.transform = 'scale(1.1)';
+    btn.onmouseleave = () => btn.style.transform = 'scale(1)';
     document.body.appendChild(btn);
 }
 
-// Inicializar
+// ========== INICIALIZAÇÃO ==========
+
 document.addEventListener('DOMContentLoaded', async () => {
-    if (typeof supabaseClient !== 'undefined') {
+    if (typeof supabaseClient !== 'undefined' && supabaseClient) {
         const isAdmin = await verificarAdmin();
         if (isAdmin) {
             adicionarBotaoAdmin();
-            console.log('🔧 Painel Admin disponível');
+            console.log('🔧 Painel Admin disponível! Clique no botão 🔧');
         }
     }
 });
@@ -513,8 +746,12 @@ window.mostrarTabAdmin = mostrarTabAdmin;
 window.salvarQuiz = salvarQuiz;
 window.salvarLink = salvarLink;
 window.salvarConteudo = salvarConteudo;
+window.salvarTema = salvarTema;
 window.excluirQuiz = excluirQuiz;
+window.excluirLink = excluirLink;
 window.atualizarSubtopicoSelect = atualizarSubtopicoSelect;
 window.exportarDados = exportarDados;
+window.adicionarBotaoAdmin = adicionarBotaoAdmin;
+window.verificarAdmin = verificarAdmin;
 
-console.log('🔧 Admin.js carregado!');
+console.log('🔧 Admin.js carregado! (v2.0 - Corrigido)');
