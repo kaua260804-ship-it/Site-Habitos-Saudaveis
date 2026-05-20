@@ -322,4 +322,22 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight' || e.key === ' ') {
         e.preventDefault();
         App.proximoSlide();
-    } else if (e.key === 'ArrowLeft')
+    } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (App.slideAtual > 0) App.irParaSlide(App.slideAtual - 1);
+    }
+});
+
+// ========== CARREGAR QUIZ QUANDO CHEGAR NO SLIDE 4 ==========
+const observer = new MutationObserver(() => {
+    if (App.slideAtual === 4 && App.perguntasQuiz.length > 0 && App.modoSelecionado) {
+        App.carregarQuizDemo();
+    }
+});
+observer.observe(document.getElementById('slideContainer'), { childList: true, subtree: true });
+
+// ========== INICIAR ==========
+document.addEventListener('DOMContentLoaded', () => {
+    App.init();
+    console.log('🎮 Apresentação pronta!');
+});
