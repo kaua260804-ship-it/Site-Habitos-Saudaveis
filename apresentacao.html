@@ -13,10 +13,452 @@
 
     <!-- CONTAINER PRINCIPAL -->
     <div class="slide-container" id="slideContainer">
-        <!-- Os slides serão carregados dinamicamente aqui -->
+
+        <!-- ==================== SLIDE 0: ESCOLHER MODO ==================== -->
+        <div class="slide active" id="slide-escolha">
+            <div class="slide-content">
+                <div class="emoji-gigante">🎮</div>
+                <h1 class="titulo-slide">Quiz Interativo!</h1>
+                <p class="subtitulo">Escolha o tema da apresentação:</p>
+                <div class="btn-container">
+                    <button class="btn-escolha modo1" id="btnModo1">
+                        <span class="btn-emoji">🍎🤸</span>
+                        Alimentação + Exercícios
+                    </button>
+                    <button class="btn-escolha modo2" id="btnModo2">
+                        <span class="btn-emoji">😴📚</span>
+                        Sono + Postura
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 1: TÍTULO DO TEMA ==================== -->
+        <div class="slide" id="slide-titulo">
+            <div class="slide-content">
+                <div class="emoji-gigante" id="temaEmoji">🍎</div>
+                <h1 class="titulo-slide" id="temaTitulo">Alimentação Saudável</h1>
+                <p class="subtitulo" id="temaSubtitulo">Vamos aprender juntos!</p>
+                <button class="btn-nav" id="btnSlide1">▶️ Bora lá!</button>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 2: CONTEÚDO 1 ==================== -->
+        <div class="slide" id="slide-conteudo1">
+            <div class="slide-content">
+                <div class="emoji-medio">📖</div>
+                <h2 style="font-size: 36px; color: #2d3748; margin: 10px 0;" id="conteudo1Titulo">Tema 1</h2>
+                <p style="font-size: 22px; color: #4a5568; line-height: 1.6;" id="conteudo1Texto">
+                    Carregando...
+                </p>
+                <button class="btn-nav" id="btnSlide2">▶️ Entendi!</button>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 3: CONTEÚDO 2 ==================== -->
+        <div class="slide" id="slide-conteudo2">
+            <div class="slide-content">
+                <div class="emoji-medio">💡</div>
+                <h2 style="font-size: 36px; color: #2d3748; margin: 10px 0;" id="conteudo2Titulo">Tema 2</h2>
+                <p style="font-size: 22px; color: #4a5568; line-height: 1.6;" id="conteudo2Texto">
+                    Carregando...
+                </p>
+                <button class="btn-nav" id="btnSlide3">▶️ Próximo!</button>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 4: QUIZ DEMO ==================== -->
+        <div class="slide" id="slide-quiz">
+            <div class="slide-content">
+                <div class="emoji-medio">❓</div>
+                <h2 style="font-size: 30px; color: #667eea; margin-bottom: 15px;">Vamos testar!</h2>
+                <p style="font-size: 26px; font-weight: 700; color: #2d3748;" id="quizPergunta">
+                    Carregando...
+                </p>
+                <div id="quizOpcoes"></div>
+                <p id="quizFeedback" class="feedback-quiz"></p>
+                <button class="btn-nav" id="btnProximoQuiz" style="display: none;">
+                    ▶️ Próxima
+                </button>
+                <button class="btn-nav" id="btnFinalizarQuiz" style="display: none;">
+                    🎉 Continuar
+                </button>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 5: REGRAS ==================== -->
+        <div class="slide" id="slide-regras">
+            <div class="slide-content">
+                <div class="emoji-medio">🏆</div>
+                <h1 class="titulo-slide" style="font-size: 40px;">Competição!</h1>
+                <div class="regras-lista">
+                    <p>🥇 <strong>1º lugar:</strong> Prêmio especial!</p>
+                    <p>🥈 <strong>2º lugar:</strong> Prêmio</p>
+                    <p>🥉 <strong>3º lugar:</strong> Prêmio</p>
+                    <p>🎁 <strong>Todos:</strong> Brinde de participação</p>
+                    <p>⭐ <strong>10 pontos</strong> por acerto</p>
+                    <p>⏱️ <strong>10 minutos</strong> de quiz</p>
+                </div>
+                <button class="btn-nav" id="btnSlide5" style="margin-top: 20px;">
+                    🚀 Abrir o Site!
+                </button>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 6: CONTAGEM ==================== -->
+        <div class="slide" id="slide-contagem">
+            <div class="slide-content">
+                <div class="emoji-medio">⏰</div>
+                <h2 style="font-size: 36px; color: #2d3748;">Preparem-se!</h2>
+                <p style="font-size: 20px; color: #718096; margin: 10px 0;">
+                    Abram o site no celular ou computador:
+                </p>
+                <p class="site-link">
+                    🔗 kaua260804-ship-it.github.io/Site-Habitos-Saudaveis
+                </p>
+                <div class="contador" id="contador" style="margin: 20px 0;">3</div>
+                <button class="btn-nav amarelo" id="btnIniciarContagem">
+                    🎮 Iniciar!
+                </button>
+            </div>
+        </div>
+
+        <!-- ==================== SLIDE 7: RANKING FINAL ==================== -->
+        <div class="slide" id="slide-ranking">
+            <div class="slide-content">
+                <div class="emoji-gigante">🏆</div>
+                <h1 class="titulo-slide" style="font-size: 42px;">Resultado Final!</h1>
+                <div class="ranking-lista" id="rankingFinal">
+                    <p style="color:#718096;">Carregando...</p>
+                </div>
+                <button class="btn-nav amarelo" id="btnConfetes" style="margin-top: 15px;">
+                    🎉 Celebrar!
+                </button>
+            </div>
+        </div>
+
     </div>
 
-    <!-- SCRIPTS -->
-    <script src="js/apresentacao.js"></script>
+    <script>
+        // ============================================
+        // APRESENTACAO.JS - TUDO EM UM ARQUIVO
+        // ============================================
+
+        const App = {
+            slideAtual: 0,
+            totalSlides: 8,
+            modoSelecionado: null,
+            quizDemoIndice: 0,
+            perguntasQuiz: [],
+
+            slidesIds: [
+                'slide-escolha', 'slide-titulo', 'slide-conteudo1', 'slide-conteudo2',
+                'slide-quiz', 'slide-regras', 'slide-contagem', 'slide-ranking'
+            ],
+
+            dadosModos: {
+                alimentacao_exercicios: {
+                    emoji: '🍎🤸',
+                    titulo: 'Alimentação + Exercícios',
+                    subtitulo: 'Comer bem e se mexer!',
+                    classeTitulo: 'modo1',
+                    conteudos: [
+                        {
+                            titulo: '🍎 Pirâmide Alimentar',
+                            texto: 'A base da pirâmide tem arroz, pães e frutas (comer MAIS). O topo tem doces e frituras (comer MENOS). Um prato colorido é um prato saudável! 🌈'
+                        },
+                        {
+                            titulo: '🤸 Mexa-se!',
+                            texto: '1 hora de exercício por dia já faz diferença! Pular corda, jogar bola ou andar de bicicleta fortalece os ossos e libera endorfina, o hormônio da felicidade! 😄'
+                        }
+                    ],
+                    quizzesLocal: [
+                        { pergunta: 'O que fica na BASE da pirâmide alimentar?', opcoes: ['Doces e gorduras', 'Arroz, pães e frutas', 'Refrigerantes', 'Fast food'], correta: 1 },
+                        { pergunta: 'Quantos minutos de exercício por dia?', opcoes: ['15', '30', '60', '120'], correta: 2 }
+                    ],
+                    temasSupabase: ['alimentacao', 'exercicios']
+                },
+                sono_postura: {
+                    emoji: '😴📚',
+                    titulo: 'Sono + Postura',
+                    subtitulo: 'Dormir bem e sentar direitinho!',
+                    classeTitulo: 'modo2',
+                    conteudos: [
+                        {
+                            titulo: '😴 Sono dos Campeões',
+                            texto: 'Crianças precisam dormir de 8 a 12 horas por noite! Desligue o celular 1 hora antes de dormir. Um quarto escuro e silencioso ajuda a dormir melhor! 🌙'
+                        },
+                        {
+                            titulo: '📚 Postura Nota 10',
+                            texto: 'Costas retas, pés no chão! A mochila deve ser usada nas DUAS costas e pesar no máximo 10% do seu corpo. Levante o celular na altura dos olhos para não curvar o pescoço! 🎒'
+                        }
+                    ],
+                    quizzesLocal: [
+                        { pergunta: 'Quantas horas de sono uma criança precisa?', opcoes: ['4-5h', '8-12h', '2-3h', '15h'], correta: 1 },
+                        { pergunta: 'Como a mochila deve ser usada?', opcoes: ['Em uma costas só', 'Nas duas costas', 'Na barriga', 'Arrastando no chão'], correta: 1 }
+                    ],
+                    temasSupabase: ['sono', 'postura']
+                }
+            },
+
+            init() {
+                console.log('🚀 Inicializando apresentação...');
+                this.criarEstrelas();
+                this.configurarBotoes();
+                this.irParaSlide(0);
+                console.log('✅ Apresentação pronta!');
+            },
+
+            criarEstrelas() {
+                const container = document.getElementById('starsContainer');
+                for (let i = 0; i < 80; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.top = Math.random() * 100 + '%';
+                    star.style.width = (Math.random() * 3 + 1) + 'px';
+                    star.style.height = star.style.width;
+                    star.style.setProperty('--duration', (Math.random() * 3 + 1) + 's');
+                    star.style.setProperty('--delay', Math.random() * 3 + 's');
+                    container.appendChild(star);
+                }
+            },
+
+            configurarBotoes() {
+                // Botões de escolha de modo
+                document.getElementById('btnModo1').addEventListener('click', () => this.escolherModo('alimentacao_exercicios'));
+                document.getElementById('btnModo2').addEventListener('click', () => this.escolherModo('sono_postura'));
+
+                // Botões de navegação
+                document.getElementById('btnSlide1').addEventListener('click', () => this.proximoSlide());
+                document.getElementById('btnSlide2').addEventListener('click', () => this.proximoSlide());
+                document.getElementById('btnSlide3').addEventListener('click', () => this.proximoSlide());
+                document.getElementById('btnSlide5').addEventListener('click', () => this.proximoSlide());
+                document.getElementById('btnFinalizarQuiz').addEventListener('click', () => this.proximoSlide());
+
+                // Botão próxima pergunta
+                document.getElementById('btnProximoQuiz').addEventListener('click', () => this.proximoQuizDemo());
+
+                // Botão contagem
+                document.getElementById('btnIniciarContagem').addEventListener('click', () => this.iniciarContagem());
+
+                // Botão confetes
+                document.getElementById('btnConfetes').addEventListener('click', () => this.dispararConfetes());
+            },
+
+            irParaSlide(index) {
+                if (index < 0 || index >= this.totalSlides) return;
+
+                document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+
+                const slideId = this.slidesIds[index];
+                const slideEl = document.getElementById(slideId);
+                if (slideEl) {
+                    slideEl.classList.add('active');
+                }
+
+                this.slideAtual = index;
+
+                if (index === 4 && this.perguntasQuiz.length > 0) {
+                    this.carregarQuizDemo();
+                }
+                if (index === 7) {
+                    this.carregarRankingFinal();
+                }
+            },
+
+            proximoSlide() {
+                if (this.slideAtual < this.totalSlides - 1) {
+                    this.irParaSlide(this.slideAtual + 1);
+                }
+            },
+
+            async escolherModo(modo) {
+                console.log('🎯 Modo:', modo);
+                this.modoSelecionado = modo;
+                const dados = this.dadosModos[modo];
+
+                document.getElementById('temaEmoji').textContent = dados.emoji;
+                document.getElementById('temaTitulo').textContent = dados.titulo;
+                document.getElementById('temaTitulo').className = 'titulo-slide ' + (dados.classeTitulo || '');
+                document.getElementById('temaSubtitulo').textContent = dados.subtitulo;
+
+                document.getElementById('conteudo1Titulo').textContent = dados.conteudos[0].titulo;
+                document.getElementById('conteudo1Texto').textContent = dados.conteudos[0].texto;
+
+                document.getElementById('conteudo2Titulo').textContent = dados.conteudos[1].titulo;
+                document.getElementById('conteudo2Texto').textContent = dados.conteudos[1].texto;
+
+                this.perguntasQuiz = await this.carregarQuizzesSupabase(dados.temasSupabase);
+                if (this.perguntasQuiz.length === 0) {
+                    this.perguntasQuiz = dados.quizzesLocal;
+                }
+                this.quizDemoIndice = 0;
+                this.irParaSlide(1);
+            },
+
+            async carregarQuizzesSupabase(temas) {
+                try {
+                    const url = `https://ejldlvlacidyzizxucdr.supabase.co/rest/v1/quizzes?tema=in.(${temas.join(',')})&select=*&limit=10`;
+                    const response = await fetch(url, {
+                        headers: { 'apikey': 'sb_publishable_YDWCWLgn0t9wrayWljnnaA_immbdkj8' }
+                    });
+                    const data = await response.json();
+                    if (data && data.length > 0) {
+                        return data.map(q => ({
+                            pergunta: q.pergunta,
+                            opcoes: [q.opcao_a, q.opcao_b, q.opcao_c, q.opcao_d].filter(o => o && o.trim()),
+                            correta: q.correta
+                        }));
+                    }
+                } catch (e) { console.log('Offline - usando local'); }
+                return [];
+            },
+
+            carregarQuizDemo() {
+                const quizPergunta = document.getElementById('quizPergunta');
+                const quizOpcoes = document.getElementById('quizOpcoes');
+                const quizFeedback = document.getElementById('quizFeedback');
+                const btnProximoQuiz = document.getElementById('btnProximoQuiz');
+                const btnFinalizarQuiz = document.getElementById('btnFinalizarQuiz');
+
+                if (this.quizDemoIndice >= this.perguntasQuiz.length) {
+                    quizPergunta.textContent = '🎉 Demonstração concluída!';
+                    quizOpcoes.innerHTML = '';
+                    quizFeedback.textContent = '';
+                    btnProximoQuiz.style.display = 'none';
+                    btnFinalizarQuiz.style.display = 'inline-block';
+                    return;
+                }
+
+                const p = this.perguntasQuiz[this.quizDemoIndice];
+                quizPergunta.textContent = '❓ ' + p.pergunta;
+                quizFeedback.textContent = '';
+                quizFeedback.className = 'feedback-quiz';
+                btnProximoQuiz.style.display = 'none';
+                btnFinalizarQuiz.style.display = 'none';
+
+                let html = '';
+                p.opcoes.forEach((opcao, i) => {
+                    html += `<button class="quiz-option" data-opcao="${i}">
+                        ${String.fromCharCode(65 + i)}) ${opcao}
+                    </button>`;
+                });
+                quizOpcoes.innerHTML = html;
+
+                // Adicionar eventos
+                document.querySelectorAll('.quiz-option').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const escolha = parseInt(e.target.getAttribute('data-opcao'));
+                        this.responderQuiz(escolha);
+                    });
+                });
+            },
+
+            responderQuiz(escolha) {
+                const p = this.perguntasQuiz[this.quizDemoIndice];
+                const feedback = document.getElementById('quizFeedback');
+                const btnProximoQuiz = document.getElementById('btnProximoQuiz');
+
+                document.querySelectorAll('.quiz-option').forEach((btn, i) => {
+                    btn.disabled = true;
+                    btn.style.pointerEvents = 'none';
+                    if (i === p.correta) btn.classList.add('correct');
+                    if (i === escolha && escolha !== p.correta) btn.classList.add('wrong');
+                });
+
+                if (escolha === p.correta) {
+                    feedback.textContent = '✅ CORRETO! +10 pontos! ⭐';
+                    feedback.className = 'feedback-quiz acerto';
+                } else {
+                    feedback.textContent = '❌ A resposta era: ' + p.opcoes[p.correta];
+                    feedback.className = 'feedback-quiz erro';
+                }
+
+                btnProximoQuiz.style.display = 'inline-block';
+            },
+
+            proximoQuizDemo() {
+                this.quizDemoIndice++;
+                this.carregarQuizDemo();
+            },
+
+            iniciarContagem() {
+                const btn = document.getElementById('btnIniciarContagem');
+                btn.style.display = 'none';
+                let contador = 3;
+                const el = document.getElementById('contador');
+
+                const intervalo = setInterval(() => {
+                    contador--;
+                    if (contador <= 0) {
+                        clearInterval(intervalo);
+                        el.textContent = 'GO! 🚀';
+                        el.style.webkitTextFillColor = '#48bb78';
+                        el.style.background = '#48bb78';
+                        setTimeout(() => this.proximoSlide(), 1500);
+                    } else {
+                        el.textContent = contador;
+                    }
+                }, 1000);
+            },
+
+            async carregarRankingFinal() {
+                const container = document.getElementById('rankingFinal');
+                try {
+                    const response = await fetch(
+                        'https://ejldlvlacidyzizxucdr.supabase.co/rest/v1/usuarios?select=apelido,pontos&order=pontos.desc&limit=5',
+                        { headers: { 'apikey': 'sb_publishable_YDWCWLgn0t9wrayWljnnaA_immbdkj8' } }
+                    );
+                    const data = await response.json();
+
+                    if (data && data.length > 0) {
+                        let html = '';
+                        data.forEach((j, idx) => {
+                            const medalha = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx+1}º`;
+                            html += `<div class="ranking-item" style="animation-delay:${idx*0.2}s">
+                                ${medalha} <strong>${j.apelido}</strong> — ⭐ ${j.pontos} pts
+                            </div>`;
+                        });
+                        container.innerHTML = html;
+                    } else {
+                        container.innerHTML = '<p>🥇 1º: ______<br>🥈 2º: ______<br>🥉 3º: ______</p>';
+                    }
+                } catch (e) {
+                    container.innerHTML = '<p>🥇 1º: ______<br>🥈 2º: ______<br>🥉 3º: ______</p>';
+                }
+            },
+
+            dispararConfetes() {
+                const emojis = ['🎉','🎊','⭐','🏆','🌟','💫','✨','🎯','💪','👏','🥇','🎖️'];
+                for (let i = 0; i < 40; i++) {
+                    setTimeout(() => {
+                        const c = document.createElement('div');
+                        c.className = 'confetti';
+                        c.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                        c.style.left = Math.random() * 100 + '%';
+                        c.style.fontSize = (Math.random() * 30 + 20) + 'px';
+                        c.style.animation = `confeteFall ${Math.random() * 2 + 2}s ease-out forwards`;
+                        document.body.appendChild(c);
+                        setTimeout(() => c.remove(), 4000);
+                    }, i * 80);
+                }
+            }
+        };
+
+        // Teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                App.proximoSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                if (App.slideAtual > 0) App.irParaSlide(App.slideAtual - 1);
+            }
+        });
+
+        // Iniciar
+        window.addEventListener('DOMContentLoaded', () => App.init());
+    </script>
 </body>
 </html>
