@@ -1,9 +1,14 @@
 // ============================================
-// PAINEL ADMIN - GERENCIAMENTO COMPLETO (CORRIGIDO)
+// PAINEL ADMIN - GERENCIAMENTO COMPLETO (V3.0 - COM EDIÇÃO)
 // ============================================
 
 let adminLogado = false;
 let adminDados = null;
+let editandoQuizId = null;
+let editandoLinkId = null;
+let editandoConteudoId = null;
+let quizPagina = 0;
+const QUIZ_POR_PAGINA = 10;
 
 // Verificar se usuário é admin
 async function verificarAdmin() {
@@ -65,7 +70,7 @@ function criarPainelAdmin() {
             <div class="admin-header">
                 <div>
                     <h2>🔧 Painel Administrativo</h2>
-                    <p style="color: #718096; font-size: 14px;">Gerencie quizzes, links e conteúdos</p>
+                    <p style="color: #718096; font-size: 14px;">Gerencie quizzes, links e conteúdos • ✏️ Clique em Editar para modificar</p>
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-admin success" onclick="exportarDados()">
@@ -115,8 +120,8 @@ function criarPainelAdmin() {
             
             <!-- Quizzes -->
             <div class="admin-content active" id="tab-quizzes">
-                <div class="admin-form">
-                    <h3>➕ Adicionar Quiz</h3>
+                <div class="admin-form" id="formQuiz">
+                    <h3 id="formQuizTitulo">➕ Adicionar Quiz</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label>Tema</label>
@@ -146,11 +151,11 @@ function criarPainelAdmin() {
                         </div>
                         <div class="form-group">
                             <label>Opção C</label>
-                            <input type="text" id="quizOpcaoC" placeholder="Resposta C">
+                            <input type="text" id="quizOpcaoC" placeholder="Resposta C (opcional)">
                         </div>
                         <div class="form-group">
                             <label>Opção D</label>
-                            <input type="text" id="quizOpcaoD" placeholder="Resposta D">
+                            <input type="text" id="quizOpcaoD" placeholder="Resposta D (opcional)">
                         </div>
                     </div>
                     <div class="form-row">
@@ -160,22 +165,35 @@ function criarPainelAdmin() {
                         </div>
                         <div class="form-group">
                             <label>Pontos</label>
-                            <input type="number" id="quizPontos" value="10">
+                            <input type="number" id="quizPontos" value="10" min="1" max="100">
                         </div>
                     </div>
-                    <button class="btn-admin" onclick="salvarQuiz()">
-                        <i class="fas fa-save"></i> Salvar Quiz
-                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-admin" id="btnSalvarQuiz" onclick="salvarQuiz()">
+                            <i class="fas fa-save"></i> Salvar Quiz
+                        </button>
+                        <button class="btn-admin" id="btnCancelarQuiz" onclick="cancelarEdicaoQuiz()" style="display: none; background: #a0aec0;">
+                            <i class="fas fa-times"></i> Cancelar Edição
+                        </button>
+                    </div>
                 </div>
                 
-                <h3 style="margin-top: 20px;">📋 Quizzes Existentes</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px;">
+                    <h3>📋 Quizzes Existentes</h3>
+                    <div>
+                        <input type="text" id="buscaQuiz" placeholder="🔍 Buscar quiz..." 
+                               oninput="carregarQuizzes()" 
+                               style="padding: 8px 15px; border-radius: 20px; border: 2px solid #e2e8f0; font-family: Poppins;">
+                    </div>
+                </div>
                 <div id="listaQuizzes" style="overflow-x: auto;"></div>
+                <div id="paginacaoQuizzes" style="text-align: center; margin-top: 15px;"></div>
             </div>
             
             <!-- Links -->
             <div class="admin-content" id="tab-links">
-                <div class="admin-form">
-                    <h3>➕ Adicionar Link</h3>
+                <div class="admin-form" id="formLink">
+                    <h3 id="formLinkTitulo">➕ Adicionar Link</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label>Subtópico</label>
@@ -192,19 +210,24 @@ function criarPainelAdmin() {
                         <label>URL</label>
                         <input type="url" id="linkUrl" placeholder="https://...">
                     </div>
-                    <button class="btn-admin" onclick="salvarLink()">
-                        <i class="fas fa-save"></i> Salvar Link
-                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-admin" id="btnSalvarLink" onclick="salvarLink()">
+                            <i class="fas fa-save"></i> Salvar Link
+                        </button>
+                        <button class="btn-admin" id="btnCancelarLink" onclick="cancelarEdicaoLink()" style="display: none; background: #a0aec0;">
+                            <i class="fas fa-times"></i> Cancelar Edição
+                        </button>
+                    </div>
                 </div>
                 
-                <h3 style="margin-top: 20px;">📋 Links Existentes</h3>
+                <h3 style="margin-top: 25px;">📋 Links Existentes</h3>
                 <div id="listaLinks" style="overflow-x: auto;"></div>
             </div>
             
             <!-- Conteúdos -->
             <div class="admin-content" id="tab-conteudos">
-                <div class="admin-form">
-                    <h3>➕ Adicionar/Editar Conteúdo</h3>
+                <div class="admin-form" id="formConteudo">
+                    <h3 id="formConteudoTitulo">➕ Adicionar Conteúdo</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label>Tema</label>
@@ -222,21 +245,29 @@ function criarPainelAdmin() {
                         <input type="text" id="conteudoNome" placeholder="Ex: Frutas da Estação">
                     </div>
                     <div class="form-group">
-                        <label>Resumo</label>
-                        <textarea id="conteudoResumo" placeholder="Resumo curto para o card..."></textarea>
+                        <label>Resumo (aparece no card)</label>
+                        <textarea id="conteudoResumo" placeholder="Resumo curto..."></textarea>
                     </div>
                     <div class="form-group">
                         <label>Conteúdo Completo</label>
-                        <textarea id="conteudoCompleto" placeholder="Texto completo..." style="min-height: 150px;"></textarea>
+                        <textarea id="conteudoCompleto" placeholder="Texto completo..." style="min-height: 120px;"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Dica/Desafio</label>
                         <input type="text" id="conteudoDica" placeholder="ex: DESAFIO: Beba 2L de água hoje!">
                     </div>
-                    <button class="btn-admin" onclick="salvarConteudo()">
-                        <i class="fas fa-save"></i> Salvar Conteúdo
-                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-admin" id="btnSalvarConteudo" onclick="salvarConteudo()">
+                            <i class="fas fa-save"></i> Salvar Conteúdo
+                        </button>
+                        <button class="btn-admin" id="btnCancelarConteudo" onclick="cancelarEdicaoConteudo()" style="display: none; background: #a0aec0;">
+                            <i class="fas fa-times"></i> Cancelar Edição
+                        </button>
+                    </div>
                 </div>
+                
+                <h3 style="margin-top: 25px;">📋 Conteúdos Existentes</h3>
+                <div id="listaConteudos" style="overflow-x: auto;"></div>
             </div>
             
             <!-- Temas -->
@@ -262,7 +293,7 @@ function criarPainelAdmin() {
                     </button>
                 </div>
                 
-                <h3 style="margin-top: 20px;">📋 Temas Existentes</h3>
+                <h3 style="margin-top: 25px;">📋 Temas Existentes</h3>
                 <div id="listaTemas"></div>
             </div>
         </div>
@@ -289,7 +320,6 @@ async function carregarTemasNoSelect(selectId) {
             .select('tema_id, tema_nome, tema_emoji')
             .order('tema_id');
         
-        // Remover duplicados
         const temasUnicos = [];
         const ids = new Set();
         data?.forEach(item => {
@@ -306,7 +336,6 @@ async function carregarTemasNoSelect(selectId) {
         
     } catch (error) {
         console.error('Erro ao carregar temas:', error);
-        select.innerHTML = '<option value="">Erro ao carregar</option>';
     }
 }
 
@@ -320,9 +349,7 @@ async function carregarSubtopicosNoSelect(selectId, temaId = null) {
             .select('subtopico_id, subtopico_nome, tema_nome')
             .order('subtopico_nome');
         
-        if (temaId) {
-            query = query.eq('tema_id', temaId);
-        }
+        if (temaId) query = query.eq('tema_id', temaId);
         
         const { data } = await query;
         
@@ -333,151 +360,13 @@ async function carregarSubtopicosNoSelect(selectId, temaId = null) {
         
     } catch (error) {
         console.error('Erro ao carregar subtópicos:', error);
-        select.innerHTML = '<option value="">Erro ao carregar</option>';
     }
 }
 
-// Atualizar select de subtópicos baseado no tema
 async function atualizarSubtopicoSelect(temaSelectId, subtopicoSelectId) {
     const temaId = document.getElementById(temaSelectId)?.value;
     if (!temaId) return;
-    
     await carregarSubtopicosNoSelect(subtopicoSelectId, temaId);
-}
-
-// ========== CARREGAR LISTAS ==========
-
-async function carregarQuizzes() {
-    const { data } = await supabaseClient
-        .from('quizzes')
-        .select('*')
-        .order('criado_em', { ascending: false });
-    
-    const container = document.getElementById('listaQuizzes');
-    if (!container) return;
-    
-    if (!data || data.length === 0) {
-        container.innerHTML = '<p style="color: #718096; padding: 20px;">Nenhum quiz cadastrado</p>';
-        return;
-    }
-    
-    let html = '<table class="admin-table"><tr><th>Subtópico</th><th>Pergunta</th><th>Correta</th><th>Pontos</th><th>Ações</th></tr>';
-    data.forEach(q => {
-        const opcoes = [q.opcao_a, q.opcao_b, q.opcao_c, q.opcao_d];
-        html += `
-            <tr>
-                <td><small>${q.subtopico_nome}</small></td>
-                <td>${q.pergunta.substring(0, 40)}...</td>
-                <td>${String.fromCharCode(65 + q.correta)}) ${opcoes[q.correta]?.substring(0, 15)}</td>
-                <td>${q.pontos}</td>
-                <td>
-                    <button class="btn-admin" onclick="excluirQuiz(${q.id})" style="padding: 5px 10px; font-size: 11px;">
-                        🗑️ Excluir
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-    html += '</table>';
-    container.innerHTML = html;
-}
-
-async function carregarLinks() {
-    const { data } = await supabaseClient
-        .from('links')
-        .select('*')
-        .order('criado_em', { ascending: false });
-    
-    const container = document.getElementById('listaLinks');
-    if (!container) return;
-    
-    if (!data || data.length === 0) {
-        container.innerHTML = '<p style="color: #718096; padding: 20px;">Nenhum link cadastrado</p>';
-        return;
-    }
-    
-    let html = '<table class="admin-table"><tr><th>Subtópico</th><th>Nome</th><th>URL</th><th>Ações</th></tr>';
-    data.forEach(l => {
-        html += `
-            <tr>
-                <td><small>${l.subtopico_id}</small></td>
-                <td>${l.nome}</td>
-                <td><a href="${l.url}" target="_blank" style="color: #667eea;">Abrir 🔗</a></td>
-                <td>
-                    <button class="btn-admin" onclick="excluirLink(${l.id})" style="padding: 5px 10px; font-size: 11px;">
-                        🗑️
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-    html += '</table>';
-    container.innerHTML = html;
-}
-
-async function carregarConteudos() {
-    const { data } = await supabaseClient
-        .from('conteudos')
-        .select('*')
-        .order('tema_id');
-    
-    // Só mostra no console por enquanto
-    console.log('📚 Conteúdos:', data?.length || 0);
-}
-
-async function carregarTemas() {
-    const { data } = await supabaseClient
-        .from('conteudos')
-        .select('tema_id, tema_nome, tema_emoji')
-        .order('tema_id');
-    
-    const container = document.getElementById('listaTemas');
-    if (!container) return;
-    
-    const temasUnicos = [];
-    const ids = new Set();
-    data?.forEach(item => {
-        if (!ids.has(item.tema_id)) {
-            ids.add(item.tema_id);
-            temasUnicos.push(item);
-        }
-    });
-    
-    if (temasUnicos.length === 0) {
-        container.innerHTML = '<p style="color: #718096; padding: 20px;">Nenhum tema cadastrado</p>';
-        return;
-    }
-    
-    let html = '<table class="admin-table"><tr><th>ID</th><th>Nome</th><th>Emoji</th></tr>';
-    temasUnicos.forEach(t => {
-        html += `
-            <tr>
-                <td>${t.tema_id}</td>
-                <td>${t.tema_nome}</td>
-                <td style="font-size: 30px;">${t.tema_emoji || '📚'}</td>
-            </tr>
-        `;
-    });
-    html += '</table>';
-    container.innerHTML = html;
-}
-
-// ========== CARREGAR DASHBOARD ==========
-
-async function carregarDashboard() {
-    try {
-        const { count: qCount } = await supabaseClient.from('quizzes').select('*', { count: 'exact', head: true });
-        const { count: lCount } = await supabaseClient.from('links').select('*', { count: 'exact', head: true });
-        const { count: cCount } = await supabaseClient.from('conteudos').select('*', { count: 'exact', head: true });
-        const { count: uCount } = await supabaseClient.from('usuarios').select('*', { count: 'exact', head: true });
-        
-        document.getElementById('statQuizzes').textContent = qCount || 0;
-        document.getElementById('statLinks').textContent = lCount || 0;
-        document.getElementById('statConteudos').textContent = cCount || 0;
-        document.getElementById('statUsuarios').textContent = uCount || 0;
-    } catch (error) {
-        console.error('Erro no dashboard:', error);
-    }
 }
 
 // ========== MOSTRAR TABS ==========
@@ -501,15 +390,305 @@ function mostrarTabAdmin(tab) {
     if (tab === 'temas') carregarTemas();
 }
 
-// ========== SALVAR DADOS ==========
+// ========== CARREGAR LISTAS ==========
+
+async function carregarQuizzes() {
+    const busca = document.getElementById('buscaQuiz')?.value?.toLowerCase() || '';
+    
+    let query = supabaseClient
+        .from('quizzes')
+        .select('*', { count: 'exact' })
+        .order('criado_em', { ascending: false });
+    
+    if (busca) {
+        query = query.or(`pergunta.ilike.%${busca}%,subtopico_nome.ilike.%${busca}%`);
+    }
+    
+    query = query.range(quizPagina * QUIZ_POR_PAGINA, (quizPagina + 1) * QUIZ_POR_PAGINA - 1);
+    
+    const { data, count } = await query;
+    
+    const container = document.getElementById('listaQuizzes');
+    if (!container) return;
+    
+    if (!data || data.length === 0) {
+        container.innerHTML = '<p style="color: #718096; padding: 20px; text-align: center;">Nenhum quiz encontrado</p>';
+        document.getElementById('paginacaoQuizzes').innerHTML = '';
+        return;
+    }
+    
+    let html = '<table class="admin-table"><tr><th>ID</th><th>Subtópico</th><th>Pergunta</th><th>Correta</th><th>Pts</th><th style="min-width: 140px;">Ações</th></tr>';
+    data.forEach(q => {
+        const opcoes = [q.opcao_a, q.opcao_b, q.opcao_c, q.opcao_d].filter(o => o);
+        const corretaLetra = String.fromCharCode(65 + q.correta);
+        const corretaTexto = opcoes[q.correta] || '?';
+        
+        html += `
+            <tr>
+                <td><small>${q.id}</small></td>
+                <td><small>${q.subtopico_nome || q.subtopico_id}</small></td>
+                <td>${q.pergunta.substring(0, 50)}${q.pergunta.length > 50 ? '...' : ''}</td>
+                <td><strong>${corretaLetra})</strong> ${corretaTexto.substring(0, 20)}</td>
+                <td>${q.pontos}</td>
+                <td style="display: flex; gap: 5px; flex-wrap: wrap;">
+                    <button class="btn-admin" onclick="editarQuiz(${q.id})" style="padding: 5px 10px; font-size: 11px; background: #3b82f6;">
+                        ✏️ Editar
+                    </button>
+                    <button class="btn-admin" onclick="duplicarQuiz(${q.id})" style="padding: 5px 10px; font-size: 11px; background: #8b5cf6;">
+                        📋 Duplicar
+                    </button>
+                    <button class="btn-admin danger" onclick="excluirQuiz(${q.id})" style="padding: 5px 10px; font-size: 11px;">
+                        🗑️
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    html += '</table>';
+    container.innerHTML = html;
+    
+    // Paginação
+    const totalPaginas = Math.ceil((count || 0) / QUIZ_POR_PAGINA);
+    let pagHtml = '';
+    if (totalPaginas > 1) {
+        pagHtml += `<button onclick="quizPagina=0;carregarQuizzes()" ${quizPagina === 0 ? 'disabled' : ''} style="padding: 5px 15px; margin: 0 5px; border-radius: 20px; border: none; cursor: pointer;">⏮️</button>`;
+        pagHtml += `<button onclick="quizPagina=${Math.max(0, quizPagina - 1)};carregarQuizzes()" ${quizPagina === 0 ? 'disabled' : ''} style="padding: 5px 15px; margin: 0 5px; border-radius: 20px; border: none; cursor: pointer;">◀️</button>`;
+        pagHtml += `<span style="margin: 0 10px; color: #4a5568;">Pág ${quizPagina + 1} de ${totalPaginas}</span>`;
+        pagHtml += `<button onclick="quizPagina=${Math.min(totalPaginas - 1, quizPagina + 1)};carregarQuizzes()" ${quizPagina >= totalPaginas - 1 ? 'disabled' : ''} style="padding: 5px 15px; margin: 0 5px; border-radius: 20px; border: none; cursor: pointer;">▶️</button>`;
+        pagHtml += `<button onclick="quizPagina=${totalPaginas - 1};carregarQuizzes()" ${quizPagina >= totalPaginas - 1 ? 'disabled' : ''} style="padding: 5px 15px; margin: 0 5px; border-radius: 20px; border: none; cursor: pointer;">⏭️</button>`;
+    }
+    document.getElementById('paginacaoQuizzes').innerHTML = pagHtml;
+}
+
+async function carregarLinks() {
+    const { data } = await supabaseClient
+        .from('links')
+        .select('*')
+        .order('criado_em', { ascending: false });
+    
+    const container = document.getElementById('listaLinks');
+    if (!container) return;
+    
+    if (!data || data.length === 0) {
+        container.innerHTML = '<p style="color: #718096; padding: 20px; text-align: center;">Nenhum link cadastrado</p>';
+        return;
+    }
+    
+    let html = '<table class="admin-table"><tr><th>ID</th><th>Subtópico</th><th>Nome</th><th>URL</th><th style="min-width: 100px;">Ações</th></tr>';
+    data.forEach(l => {
+        html += `
+            <tr>
+                <td><small>${l.id}</small></td>
+                <td><small>${l.subtopico_id}</small></td>
+                <td>${l.nome}</td>
+                <td><a href="${l.url}" target="_blank" style="color: #667eea;">🔗 Abrir</a></td>
+                <td style="display: flex; gap: 5px;">
+                    <button class="btn-admin" onclick="editarLink(${l.id})" style="padding: 5px 10px; font-size: 11px; background: #3b82f6;">
+                        ✏️
+                    </button>
+                    <button class="btn-admin danger" onclick="excluirLink(${l.id})" style="padding: 5px 10px; font-size: 11px;">
+                        🗑️
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    html += '</table>';
+    container.innerHTML = html;
+}
+
+async function carregarConteudos() {
+    const { data } = await supabaseClient
+        .from('conteudos')
+        .select('*')
+        .order('tema_id')
+        .order('ordem');
+    
+    const container = document.getElementById('listaConteudos');
+    if (!container) return;
+    
+    if (!data || data.length === 0) {
+        container.innerHTML = '<p style="color: #718096; padding: 20px; text-align: center;">Nenhum conteúdo cadastrado</p>';
+        return;
+    }
+    
+    let html = '<table class="admin-table"><tr><th>ID</th><th>Tema</th><th>Subtópico</th><th>Resumo</th><th style="min-width: 100px;">Ações</th></tr>';
+    data.forEach(c => {
+        html += `
+            <tr>
+                <td><small>${c.id}</small></td>
+                <td>${c.tema_emoji || ''} ${c.tema_nome}</td>
+                <td><strong>${c.subtopico_nome}</strong><br><small>${c.subtopico_id}</small></td>
+                <td>${(c.resumo || '').substring(0, 60)}...</td>
+                <td style="display: flex; gap: 5px;">
+                    <button class="btn-admin" onclick="editarConteudo(${c.id})" style="padding: 5px 10px; font-size: 11px; background: #3b82f6;">
+                        ✏️
+                    </button>
+                    <button class="btn-admin danger" onclick="excluirConteudo(${c.id})" style="padding: 5px 10px; font-size: 11px;">
+                        🗑️
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    html += '</table>';
+    container.innerHTML = html;
+}
+
+async function carregarTemas() {
+    const { data } = await supabaseClient
+        .from('conteudos')
+        .select('tema_id, tema_nome, tema_emoji')
+        .order('tema_id');
+    
+    const container = document.getElementById('listaTemas');
+    if (!container) return;
+    
+    const temasUnicos = [];
+    const ids = new Set();
+    data?.forEach(item => {
+        if (!ids.has(item.tema_id)) {
+            ids.add(item.tema_id);
+            temasUnicos.push(item);
+        }
+    });
+    
+    if (temasUnicos.length === 0) {
+        container.innerHTML = '<p style="color: #718096; padding: 20px; text-align: center;">Nenhum tema cadastrado</p>';
+        return;
+    }
+    
+    let html = '<table class="admin-table"><tr><th>ID</th><th>Nome</th><th>Emoji</th><th>Subtópicos</th></tr>';
+    temasUnicos.forEach(t => {
+        const numSubtopicos = data?.filter(d => d.tema_id === t.tema_id).length || 0;
+        html += `
+            <tr>
+                <td><code>${t.tema_id}</code></td>
+                <td>${t.tema_nome}</td>
+                <td style="font-size: 30px;">${t.tema_emoji || '📚'}</td>
+                <td>${numSubtopicos}</td>
+            </tr>
+        `;
+    });
+    html += '</table>';
+    container.innerHTML = html;
+}
+
+// ========== EDITAR ==========
+
+async function editarQuiz(id) {
+    const { data } = await supabaseClient.from('quizzes').select('*').eq('id', id).single();
+    if (!data) return;
+    
+    editandoQuizId = id;
+    
+    // Rolar para o formulário
+    document.getElementById('formQuiz').scrollIntoView({ behavior: 'smooth' });
+    
+    // Atualizar título
+    document.getElementById('formQuizTitulo').innerHTML = '✏️ <b>Editando Quiz #' + id + '</b>';
+    document.getElementById('btnSalvarQuiz').innerHTML = '<i class="fas fa-save"></i> Atualizar Quiz';
+    document.getElementById('btnCancelarQuiz').style.display = 'inline-flex';
+    
+    // Preencher campos
+    document.getElementById('quizTema').value = data.tema || '';
+    await atualizarSubtopicoSelect('quizTema', 'quizSubtopico');
+    setTimeout(() => {
+        document.getElementById('quizSubtopico').value = data.subtopico_id || '';
+    }, 500);
+    
+    document.getElementById('quizPergunta').value = data.pergunta || '';
+    document.getElementById('quizOpcaoA').value = data.opcao_a || '';
+    document.getElementById('quizOpcaoB').value = data.opcao_b || '';
+    document.getElementById('quizOpcaoC').value = data.opcao_c || '';
+    document.getElementById('quizOpcaoD').value = data.opcao_d || '';
+    document.getElementById('quizCorreta').value = data.correta || 0;
+    document.getElementById('quizPontos').value = data.pontos || 10;
+}
+
+async function editarLink(id) {
+    const { data } = await supabaseClient.from('links').select('*').eq('id', id).single();
+    if (!data) return;
+    
+    editandoLinkId = id;
+    
+    document.getElementById('formLink').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('formLinkTitulo').innerHTML = '✏️ <b>Editando Link #' + id + '</b>';
+    document.getElementById('btnSalvarLink').innerHTML = '<i class="fas fa-save"></i> Atualizar Link';
+    document.getElementById('btnCancelarLink').style.display = 'inline-flex';
+    
+    document.getElementById('linkSubtopico').value = data.subtopico_id || '';
+    document.getElementById('linkNome').value = data.nome || '';
+    document.getElementById('linkUrl').value = data.url || '';
+}
+
+async function editarConteudo(id) {
+    const { data } = await supabaseClient.from('conteudos').select('*').eq('id', id).single();
+    if (!data) return;
+    
+    editandoConteudoId = id;
+    
+    document.getElementById('formConteudo').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('formConteudoTitulo').innerHTML = '✏️ <b>Editando Conteúdo #' + id + '</b>';
+    document.getElementById('btnSalvarConteudo').innerHTML = '<i class="fas fa-save"></i> Atualizar Conteúdo';
+    document.getElementById('btnCancelarConteudo').style.display = 'inline-flex';
+    
+    document.getElementById('conteudoTema').value = data.tema_id || '';
+    document.getElementById('conteudoSubtopicoid').value = data.subtopico_id || '';
+    document.getElementById('conteudoNome').value = data.subtopico_nome || '';
+    document.getElementById('conteudoResumo').value = data.resumo || '';
+    document.getElementById('conteudoCompleto').value = data.conteudo_completo || '';
+    document.getElementById('conteudoDica').value = data.dica_desafio || '';
+}
+
+// ========== CANCELAR EDIÇÃO ==========
+
+function cancelarEdicaoQuiz() {
+    editandoQuizId = null;
+    document.getElementById('formQuizTitulo').innerHTML = '➕ Adicionar Quiz';
+    document.getElementById('btnSalvarQuiz').innerHTML = '<i class="fas fa-save"></i> Salvar Quiz';
+    document.getElementById('btnCancelarQuiz').style.display = 'none';
+    limparFormQuiz();
+    document.getElementById('quizTema').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelarEdicaoLink() {
+    editandoLinkId = null;
+    document.getElementById('formLinkTitulo').innerHTML = '➕ Adicionar Link';
+    document.getElementById('btnSalvarLink').innerHTML = '<i class="fas fa-save"></i> Salvar Link';
+    document.getElementById('btnCancelarLink').style.display = 'none';
+    document.getElementById('linkNome').value = '';
+    document.getElementById('linkUrl').value = '';
+}
+
+function cancelarEdicaoConteudo() {
+    editandoConteudoId = null;
+    document.getElementById('formConteudoTitulo').innerHTML = '➕ Adicionar Conteúdo';
+    document.getElementById('btnSalvarConteudo').innerHTML = '<i class="fas fa-save"></i> Salvar Conteúdo';
+    document.getElementById('btnCancelarConteudo').style.display = 'none';
+    document.getElementById('conteudoSubtopicoid').value = '';
+    document.getElementById('conteudoNome').value = '';
+    document.getElementById('conteudoResumo').value = '';
+    document.getElementById('conteudoCompleto').value = '';
+    document.getElementById('conteudoDica').value = '';
+}
+
+function limparFormQuiz() {
+    document.getElementById('quizPergunta').value = '';
+    document.getElementById('quizOpcaoA').value = '';
+    document.getElementById('quizOpcaoB').value = '';
+    document.getElementById('quizOpcaoC').value = '';
+    document.getElementById('quizOpcaoD').value = '';
+    document.getElementById('quizCorreta').value = '0';
+    document.getElementById('quizPontos').value = '10';
+}
+
+// ========== SALVAR (CRIAR OU ATUALIZAR) ==========
 
 async function salvarQuiz() {
-    const temaSelect = document.getElementById('quizTema');
-    const subtopicoSelect = document.getElementById('quizSubtopico');
-    
-    const tema = temaSelect.value;
-    const subtopicoId = subtopicoSelect.value;
-    const subtopicoNome = subtopicoSelect.selectedOptions[0]?.text.split(' (')[0] || '';
+    const tema = document.getElementById('quizTema').value;
+    const subtopicoId = document.getElementById('quizSubtopico').value;
+    const subtopicoNome = document.getElementById('quizSubtopico').selectedOptions[0]?.text?.split(' (')[0] || '';
     const pergunta = document.getElementById('quizPergunta').value.trim();
     const opcaoA = document.getElementById('quizOpcaoA').value.trim();
     const opcaoB = document.getElementById('quizOpcaoB').value.trim();
@@ -519,11 +698,11 @@ async function salvarQuiz() {
     const pontos = parseInt(document.getElementById('quizPontos').value);
     
     if (!tema || !subtopicoId || !pergunta || !opcaoA || !opcaoB) {
-        mostrarToast('Preencha pelo menos tema, subtópico, pergunta, opção A e B!', 'warning');
+        mostrarToast('Preencha tema, subtópico, pergunta, opção A e B!', 'warning');
         return;
     }
     
-    const { error } = await supabaseClient.from('quizzes').insert({
+    const dados = {
         subtopico_id: subtopicoId,
         tema,
         subtopico_nome: subtopicoNome,
@@ -534,19 +713,25 @@ async function salvarQuiz() {
         opcao_d: opcaoD,
         correta,
         pontos
-    });
+    };
     
-    if (error) {
-        mostrarToast('Erro: ' + error.message, 'error');
+    let resultado;
+    
+    if (editandoQuizId) {
+        // Atualizar existente
+        resultado = await supabaseClient.from('quizzes').update(dados).eq('id', editandoQuizId);
     } else {
-        mostrarToast('✅ Quiz salvo com sucesso!', 'success');
+        // Criar novo
+        resultado = await supabaseClient.from('quizzes').insert(dados);
+    }
+    
+    if (resultado.error) {
+        mostrarToast('Erro: ' + resultado.error.message, 'error');
+    } else {
+        mostrarToast(editandoQuizId ? '✅ Quiz atualizado!' : '✅ Quiz criado!', 'success');
+        cancelarEdicaoQuiz();
         carregarQuizzes();
         carregarDashboard();
-        document.getElementById('quizPergunta').value = '';
-        document.getElementById('quizOpcaoA').value = '';
-        document.getElementById('quizOpcaoB').value = '';
-        document.getElementById('quizOpcaoC').value = '';
-        document.getElementById('quizOpcaoD').value = '';
     }
 }
 
@@ -560,20 +745,22 @@ async function salvarLink() {
         return;
     }
     
-    const { error } = await supabaseClient.from('links').insert({
-        subtopico_id: subtopicoId,
-        nome,
-        url
-    });
+    const dados = { subtopico_id: subtopicoId, nome, url };
+    let resultado;
     
-    if (error) {
-        mostrarToast('Erro: ' + error.message, 'error');
+    if (editandoLinkId) {
+        resultado = await supabaseClient.from('links').update(dados).eq('id', editandoLinkId);
     } else {
-        mostrarToast('✅ Link salvo!', 'success');
+        resultado = await supabaseClient.from('links').insert(dados);
+    }
+    
+    if (resultado.error) {
+        mostrarToast('Erro: ' + resultado.error.message, 'error');
+    } else {
+        mostrarToast(editandoLinkId ? '✅ Link atualizado!' : '✅ Link criado!', 'success');
+        cancelarEdicaoLink();
         carregarLinks();
         carregarDashboard();
-        document.getElementById('linkNome').value = '';
-        document.getElementById('linkUrl').value = '';
     }
 }
 
@@ -590,51 +777,58 @@ async function salvarConteudo() {
         return;
     }
     
-    const { error } = await supabaseClient.from('conteudos').upsert({
+    const dados = {
         tema_id: temaId,
         subtopico_id: subtopicoId,
         subtopico_nome: nome,
         resumo,
         conteudo_completo: completo,
         dica_desafio: dica
-    }, { onConflict: 'subtopico_id' });
+    };
     
-    if (error) {
-        mostrarToast('Erro: ' + error.message, 'error');
+    let resultado;
+    
+    if (editandoConteudoId) {
+        resultado = await supabaseClient.from('conteudos').update(dados).eq('id', editandoConteudoId);
     } else {
-        mostrarToast('✅ Conteúdo salvo!', 'success');
+        resultado = await supabaseClient.from('conteudos').upsert(dados, { onConflict: 'subtopico_id' });
+    }
+    
+    if (resultado.error) {
+        mostrarToast('Erro: ' + resultado.error.message, 'error');
+    } else {
+        mostrarToast(editandoConteudoId ? '✅ Conteúdo atualizado!' : '✅ Conteúdo criado!', 'success');
+        cancelarEdicaoConteudo();
+        carregarConteudos();
         carregarDashboard();
+        carregarTodosSelects();
     }
 }
 
-async function salvarTema() {
-    const temaId = document.getElementById('temaId').value.trim();
-    const temaNome = document.getElementById('temaNome').value.trim();
-    const temaEmoji = document.getElementById('temaEmoji').value.trim() || '📚';
+// ========== DUPLICAR ==========
+
+async function duplicarQuiz(id) {
+    const { data } = await supabaseClient.from('quizzes').select('*').eq('id', id).single();
+    if (!data) return;
     
-    if (!temaId || !temaNome) {
-        mostrarToast('Preencha ID e nome do tema!', 'warning');
-        return;
-    }
-    
-    // Criar um subtópico placeholder para o tema existir
-    const subtopicoId = temaId + '_inicial';
-    
-    const { error } = await supabaseClient.from('conteudos').upsert({
-        tema_id: temaId,
-        tema_nome: temaNome,
-        tema_emoji: temaEmoji,
-        subtopico_id: subtopicoId,
-        subtopico_nome: 'Introdução',
-        resumo: 'Conteúdo introdutório sobre ' + temaNome
-    }, { onConflict: 'subtopico_id' });
+    const { error } = await supabaseClient.from('quizzes').insert({
+        subtopico_id: data.subtopico_id,
+        tema: data.tema,
+        subtopico_nome: data.subtopico_nome,
+        pergunta: data.pergunta + ' (CÓPIA)',
+        opcao_a: data.opcao_a,
+        opcao_b: data.opcao_b,
+        opcao_c: data.opcao_c,
+        opcao_d: data.opcao_d,
+        correta: data.correta,
+        pontos: data.pontos
+    });
     
     if (error) {
-        mostrarToast('Erro: ' + error.message, 'error');
+        mostrarToast('Erro ao duplicar: ' + error.message, 'error');
     } else {
-        mostrarToast('✅ Tema criado! Agora adicione conteúdos a ele.', 'success');
-        carregarTemas();
-        carregarTodosSelects();
+        mostrarToast('✅ Quiz duplicado!', 'success');
+        carregarQuizzes();
         carregarDashboard();
     }
 }
@@ -655,6 +849,67 @@ async function excluirLink(id) {
     carregarLinks();
     carregarDashboard();
     mostrarToast('Link excluído!', 'info');
+}
+
+async function excluirConteudo(id) {
+    if (!confirm('Excluir este conteúdo? Isso NÃO remove quizzes vinculados.')) return;
+    await supabaseClient.from('conteudos').delete().eq('id', id);
+    carregarConteudos();
+    carregarDashboard();
+    carregarTodosSelects();
+    mostrarToast('Conteúdo excluído!', 'info');
+}
+
+// ========== TEMAS ==========
+
+async function salvarTema() {
+    const temaId = document.getElementById('temaId').value.trim();
+    const temaNome = document.getElementById('temaNome').value.trim();
+    const temaEmoji = document.getElementById('temaEmoji').value.trim() || '📚';
+    
+    if (!temaId || !temaNome) {
+        mostrarToast('Preencha ID e nome do tema!', 'warning');
+        return;
+    }
+    
+    const { error } = await supabaseClient.from('conteudos').upsert({
+        tema_id: temaId,
+        tema_nome: temaNome,
+        tema_emoji: temaEmoji,
+        subtopico_id: temaId + '_inicial',
+        subtopico_nome: 'Introdução',
+        resumo: 'Conteúdo introdutório sobre ' + temaNome
+    }, { onConflict: 'subtopico_id' });
+    
+    if (error) {
+        mostrarToast('Erro: ' + error.message, 'error');
+    } else {
+        mostrarToast('✅ Tema criado!', 'success');
+        carregarTemas();
+        carregarTodosSelects();
+        carregarDashboard();
+        document.getElementById('temaId').value = '';
+        document.getElementById('temaNome').value = '';
+        document.getElementById('temaEmoji').value = '';
+    }
+}
+
+// ========== DASHBOARD ==========
+
+async function carregarDashboard() {
+    try {
+        const { count: qCount } = await supabaseClient.from('quizzes').select('*', { count: 'exact', head: true });
+        const { count: lCount } = await supabaseClient.from('links').select('*', { count: 'exact', head: true });
+        const { count: cCount } = await supabaseClient.from('conteudos').select('*', { count: 'exact', head: true });
+        const { count: uCount } = await supabaseClient.from('usuarios').select('*', { count: 'exact', head: true });
+        
+        document.getElementById('statQuizzes').textContent = qCount || 0;
+        document.getElementById('statLinks').textContent = lCount || 0;
+        document.getElementById('statConteudos').textContent = cCount || 0;
+        document.getElementById('statUsuarios').textContent = uCount || 0;
+    } catch (error) {
+        console.error('Erro no dashboard:', error);
+    }
 }
 
 // ========== EXPORTAR ==========
@@ -681,20 +936,18 @@ async function exportarDados() {
     a.click();
     URL.revokeObjectURL(url);
     
-    mostrarToast('✅ Dados exportados com sucesso!', 'success');
+    mostrarToast('✅ Dados exportados!', 'success');
 }
 
 // ========== FECHAR ==========
 
 function fecharAdmin() {
-    const panel = document.getElementById('adminPanel');
-    if (panel) panel.classList.remove('active');
+    document.getElementById('adminPanel').classList.remove('active');
 }
 
 // ========== BOTÃO ADMIN ==========
 
 function adicionarBotaoAdmin() {
-    // Remover botão existente se houver
     const existente = document.querySelector('.btn-admin-flutuante');
     if (existente) existente.remove();
     
@@ -704,23 +957,14 @@ function adicionarBotaoAdmin() {
     btn.title = 'Painel Administrativo';
     btn.onclick = abrirAdmin;
     btn.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
+        position: fixed; bottom: 20px; left: 20px;
         background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        width: 55px;
-        height: 55px;
-        border-radius: 50%;
-        border: none;
-        cursor: pointer;
-        font-size: 24px;
-        z-index: 9999;
+        color: white; width: 55px; height: 55px;
+        border-radius: 50%; border: none; cursor: pointer;
+        font-size: 24px; z-index: 9999;
         box-shadow: 0 4px 15px rgba(102,126,234,0.4);
         transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        display: flex; align-items: center; justify-content: center;
     `;
     btn.onmouseenter = () => btn.style.transform = 'scale(1.1)';
     btn.onmouseleave = () => btn.style.transform = 'scale(1)';
@@ -734,7 +978,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const isAdmin = await verificarAdmin();
         if (isAdmin) {
             adicionarBotaoAdmin();
-            console.log('🔧 Painel Admin disponível! Clique no botão 🔧');
+            console.log('🔧 Painel Admin disponível!');
         }
     }
 });
@@ -747,11 +991,19 @@ window.salvarQuiz = salvarQuiz;
 window.salvarLink = salvarLink;
 window.salvarConteudo = salvarConteudo;
 window.salvarTema = salvarTema;
+window.editarQuiz = editarQuiz;
+window.editarLink = editarLink;
+window.editarConteudo = editarConteudo;
+window.duplicarQuiz = duplicarQuiz;
+window.cancelarEdicaoQuiz = cancelarEdicaoQuiz;
+window.cancelarEdicaoLink = cancelarEdicaoLink;
+window.cancelarEdicaoConteudo = cancelarEdicaoConteudo;
 window.excluirQuiz = excluirQuiz;
 window.excluirLink = excluirLink;
+window.excluirConteudo = excluirConteudo;
 window.atualizarSubtopicoSelect = atualizarSubtopicoSelect;
 window.exportarDados = exportarDados;
 window.adicionarBotaoAdmin = adicionarBotaoAdmin;
 window.verificarAdmin = verificarAdmin;
 
-console.log('🔧 Admin.js carregado! (v2.0 - Corrigido)');
+console.log('🔧 Admin.js carregado! (v3.0 - Com edição)');
