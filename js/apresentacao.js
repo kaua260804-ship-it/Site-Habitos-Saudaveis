@@ -1,5 +1,5 @@
 // ============================================
-// APRESENTACAO.JS - CONTROLADOR MODULAR
+// APRESENTACAO.JS - CONTROLADOR MODULAR (FUNCIONAL)
 // ============================================
 
 const App = {
@@ -9,6 +9,7 @@ const App = {
     modoSelecionado: null,
     quizDemoIndice: 0,
     perguntasQuiz: [],
+    slidesCarregados: false,
     
     // IDs dos slides (ordem)
     slidesIds: [
@@ -70,14 +71,23 @@ const App = {
     
     // ========== INICIALIZAÇÃO ==========
     async init() {
+        console.log('🚀 Inicializando apresentação...');
         this.criarEstrelas();
+        
+        // Carregar todos os slides
         await this.carregarSlides();
+        
+        // Mostrar primeiro slide
         this.irParaSlide(0);
+        
+        console.log('✅ Apresentação pronta! Slides carregados:', this.slidesCarregados);
     },
     
     // ========== ESTRELAS ==========
     criarEstrelas() {
         const container = document.getElementById('starsContainer');
+        if (!container) return;
+        
         for (let i = 0; i < 80; i++) {
             const star = document.createElement('div');
             star.className = 'star';
@@ -94,6 +104,11 @@ const App = {
     // ========== CARREGAR SLIDES ==========
     async carregarSlides() {
         const container = document.getElementById('slideContainer');
+        if (!container) {
+            console.error('❌ Container não encontrado!');
+            return;
+        }
+        
         const slideFiles = [
             'slides/slide-escolha.html',
             'slides/slide-titulo.html',
@@ -105,33 +120,60 @@ const App = {
             'slides/slide-ranking.html'
         ];
         
+        console.log('📂 Carregando', slideFiles.length, 'slides...');
+        
         for (const file of slideFiles) {
             try {
                 const response = await fetch(file);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
                 const html = await response.text();
                 container.innerHTML += html;
+                console.log('✅ Slide carregado:', file);
             } catch (e) {
-                console.error('Erro ao carregar slide:', file, e);
+                console.error('❌ Erro ao carregar slide:', file, e.message);
             }
         }
+        
+        this.slidesCarregados = true;
+        console.log('📂 Todos slides processados');
     },
     
     // ========== NAVEGAÇÃO ==========
     irParaSlide(index) {
+        if (index < 0 || index >= this.totalSlides) return;
+        
         // Esconder todos
         document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
         
         // Mostrar o atual
         const slideId = this.slidesIds[index];
         const slideEl = document.getElementById(slideId);
+        
         if (slideEl) {
             slideEl.classList.add('active');
+            console.log('📄 Slide ativo:', slideId);
+        } else {
+            console.warn('⚠️ Slide não encontrado:', slideId);
         }
         
         this.slideAtual = index;
         
         // Ações específicas por slide
-        if (index === 7) this.carregarRankingFinal();
+        if (index === 4) {
+            // Slide do quiz - carregar pergunta
+            setTimeout(() => {
+                if (this.perguntasQuiz.length > 0) {
+                    this.carregarQuizDemo();
+                }
+            }, 200);
+        }
+        
+        if (index === 7) {
+            // Slide do ranking
+            this.carregarRankingFinal();
+        }
     },
     
     proximoSlide() {
@@ -140,31 +182,55 @@ const App = {
         }
     },
     
+    slideAnterior() {
+        if (this.slideAtual > 0) {
+            this.irParaSlide(this.slideAtual - 1);
+        }
+    },
+    
     // ========== ESCOLHER MODO ==========
     async escolherModo(modo) {
+        console.log('🎯 Modo selecionado:', modo);
         this.modoSelecionado = modo;
         const dados = this.dadosModos[modo];
         
+        if (!dados) {
+            console.error('❌ Modo não encontrado:', modo);
+            return;
+        }
+        
         // Atualizar slide título
-        document.getElementById('temaEmoji').textContent = dados.emoji;
-        document.getElementById('temaTitulo').textContent = dados.titulo;
-        document.getElementById('temaTitulo').className = 'titulo-slide ' + (dados.classeTitulo || '');
-        document.getElementById('temaSubtitulo').textContent = dados.subtitulo;
+        const temaEmoji = document.getElementById('temaEmoji');
+        const temaTitulo = document.getElementById('temaTitulo');
+        const temaSubtitulo = document.getElementById('temaSubtitulo');
+        
+        if (temaEmoji) temaEmoji.textContent = dados.emoji;
+        if (temaTitulo) {
+            temaTitulo.textContent = dados.titulo;
+            temaTitulo.className = 'titulo-slide ' + (dados.classeTitulo || '');
+        }
+        if (temaSubtitulo) temaSubtitulo.textContent = dados.subtitulo;
         
         // Atualizar slide conteúdo 1
-        document.getElementById('conteudo1Titulo').textContent = dados.conteudos[0].titulo;
-        document.getElementById('conteudo1Texto').textContent = dados.conteudos[0].texto;
+        const conteudo1Titulo = document.getElementById('conteudo1Titulo');
+        const conteudo1Texto = document.getElementById('conteudo1Texto');
+        if (conteudo1Titulo) conteudo1Titulo.textContent = dados.conteudos[0].titulo;
+        if (conteudo1Texto) conteudo1Texto.textContent = dados.conteudos[0].texto;
         
         // Atualizar slide conteúdo 2
-        document.getElementById('conteudo2Titulo').textContent = dados.conteudos[1].titulo;
-        document.getElementById('conteudo2Texto').textContent = dados.conteudos[1].texto;
+        const conteudo2Titulo = document.getElementById('conteudo2Titulo');
+        const conteudo2Texto = document.getElementById('conteudo2Texto');
+        if (conteudo2Titulo) conteudo2Titulo.textContent = dados.conteudos[1].titulo;
+        if (conteudo2Texto) conteudo2Texto.textContent = dados.conteudos[1].texto;
         
         // Carregar quizzes
         this.perguntasQuiz = await this.carregarQuizzesSupabase(dados.temasSupabase);
         
-        // Fallback para quizzes locais se não encontrar no Supabase
         if (this.perguntasQuiz.length === 0) {
+            console.log('📋 Usando quizzes locais');
             this.perguntasQuiz = dados.quizzesLocal;
+        } else {
+            console.log('☁️ Quizzes carregados do Supabase:', this.perguntasQuiz.length);
         }
         
         this.quizDemoIndice = 0;
@@ -174,14 +240,15 @@ const App = {
     // ========== CARREGAR QUIZZES DO SUPABASE ==========
     async carregarQuizzesSupabase(temas) {
         try {
-            const response = await fetch(
-                `https://ejldlvlacidyzizxucdr.supabase.co/rest/v1/quizzes?tema=in.(${temas.join(',')})&select=*&limit=10`,
-                {
-                    headers: {
-                        'apikey': 'sb_publishable_YDWCWLgn0t9wrayWljnnaA_immbdkj8'
-                    }
+            const url = `https://ejldlvlacidyzizxucdr.supabase.co/rest/v1/quizzes?tema=in.(${temas.join(',')})&select=*&limit=10`;
+            console.log('🔍 Buscando quizzes:', url);
+            
+            const response = await fetch(url, {
+                headers: {
+                    'apikey': 'sb_publishable_YDWCWLgn0t9wrayWljnnaA_immbdkj8'
                 }
-            );
+            });
+            
             const data = await response.json();
             
             if (data && data.length > 0) {
@@ -192,28 +259,43 @@ const App = {
                 }));
             }
         } catch (e) {
-            console.log('Usando quizzes locais (offline)');
+            console.log('⚠️ Offline - usando quizzes locais');
         }
         return [];
     },
     
     // ========== QUIZ DEMO ==========
     carregarQuizDemo() {
+        console.log('❓ Carregando pergunta', this.quizDemoIndice + 1, 'de', this.perguntasQuiz.length);
+        
+        const quizPergunta = document.getElementById('quizPergunta');
+        const quizOpcoes = document.getElementById('quizOpcoes');
+        const quizFeedback = document.getElementById('quizFeedback');
+        const btnProximoQuiz = document.getElementById('btnProximoQuiz');
+        const btnFinalizarQuiz = document.getElementById('btnFinalizarQuiz');
+        
+        if (!quizPergunta || !quizOpcoes) {
+            console.warn('⚠️ Elementos do quiz não encontrados');
+            return;
+        }
+        
         if (this.quizDemoIndice >= this.perguntasQuiz.length) {
-            document.getElementById('quizPergunta').textContent = '🎉 Demonstração concluída!';
-            document.getElementById('quizOpcoes').innerHTML = '';
-            document.getElementById('quizFeedback').textContent = '';
-            document.getElementById('btnProximoQuiz').style.display = 'none';
-            document.getElementById('btnFinalizarQuiz').style.display = 'inline-block';
+            quizPergunta.textContent = '🎉 Demonstração concluída!';
+            quizOpcoes.innerHTML = '';
+            if (quizFeedback) quizFeedback.textContent = '';
+            if (btnProximoQuiz) btnProximoQuiz.style.display = 'none';
+            if (btnFinalizarQuiz) btnFinalizarQuiz.style.display = 'inline-block';
             return;
         }
         
         const p = this.perguntasQuiz[this.quizDemoIndice];
-        document.getElementById('quizPergunta').textContent = '❓ ' + p.pergunta;
-        document.getElementById('quizFeedback').textContent = '';
-        document.getElementById('quizFeedback').className = 'feedback-quiz';
-        document.getElementById('btnProximoQuiz').style.display = 'none';
-        document.getElementById('btnFinalizarQuiz').style.display = 'none';
+        quizPergunta.textContent = '❓ ' + p.pergunta;
+        if (quizFeedback) {
+            quizFeedback.textContent = '';
+            quizFeedback.className = 'feedback-quiz';
+        }
+        if (btnProximoQuiz) btnProximoQuiz.style.display = 'none';
+        if (btnFinalizarQuiz) btnFinalizarQuiz.style.display = 'none';
         
         let html = '';
         p.opcoes.forEach((opcao, i) => {
@@ -221,28 +303,35 @@ const App = {
                 ${String.fromCharCode(65 + i)}) ${opcao}
             </button>`;
         });
-        document.getElementById('quizOpcoes').innerHTML = html;
+        quizOpcoes.innerHTML = html;
     },
     
     responderQuiz(escolha) {
         const p = this.perguntasQuiz[this.quizDemoIndice];
         const feedback = document.getElementById('quizFeedback');
+        const btnProximoQuiz = document.getElementById('btnProximoQuiz');
         
+        // Bloquear todas as opções
         document.querySelectorAll('.quiz-option').forEach((btn, i) => {
             btn.disabled = true;
+            btn.style.pointerEvents = 'none';
             if (i === p.correta) btn.classList.add('correct');
             if (i === escolha && escolha !== p.correta) btn.classList.add('wrong');
         });
         
-        if (escolha === p.correta) {
-            feedback.textContent = '✅ CORRETO! +10 pontos! ⭐';
-            feedback.className = 'feedback-quiz acerto';
-        } else {
-            feedback.textContent = '❌ A resposta era: ' + p.opcoes[p.correta];
-            feedback.className = 'feedback-quiz erro';
+        if (feedback) {
+            if (escolha === p.correta) {
+                feedback.textContent = '✅ CORRETO! +10 pontos! ⭐';
+                feedback.className = 'feedback-quiz acerto';
+            } else {
+                feedback.textContent = '❌ A resposta era: ' + p.opcoes[p.correta];
+                feedback.className = 'feedback-quiz erro';
+            }
         }
         
-        document.getElementById('btnProximoQuiz').style.display = 'inline-block';
+        if (btnProximoQuiz) {
+            btnProximoQuiz.style.display = 'inline-block';
+        }
     },
     
     proximoQuizDemo() {
@@ -253,9 +342,11 @@ const App = {
     // ========== CONTAGEM ==========
     iniciarContagem() {
         const btn = document.getElementById('btnIniciarContagem');
-        btn.style.display = 'none';
+        if (btn) btn.style.display = 'none';
+        
         let contador = 3;
         const el = document.getElementById('contador');
+        if (!el) return;
         
         const intervalo = setInterval(() => {
             contador--;
@@ -263,6 +354,7 @@ const App = {
                 clearInterval(intervalo);
                 el.textContent = 'GO! 🚀';
                 el.style.webkitTextFillColor = '#48bb78';
+                el.style.background = '#48bb78';
                 setTimeout(() => this.proximoSlide(), 1500);
             } else {
                 el.textContent = contador;
@@ -273,6 +365,8 @@ const App = {
     // ========== RANKING FINAL ==========
     async carregarRankingFinal() {
         const container = document.getElementById('rankingFinal');
+        if (!container) return;
+        
         try {
             const response = await fetch(
                 'https://ejldlvlacidyzizxucdr.supabase.co/rest/v1/usuarios?select=apelido,pontos&order=pontos.desc&limit=5',
@@ -324,20 +418,15 @@ document.addEventListener('keydown', (e) => {
         App.proximoSlide();
     } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        if (App.slideAtual > 0) App.irParaSlide(App.slideAtual - 1);
+        App.slideAnterior();
     }
 });
 
-// ========== CARREGAR QUIZ QUANDO CHEGAR NO SLIDE 4 ==========
-const observer = new MutationObserver(() => {
-    if (App.slideAtual === 4 && App.perguntasQuiz.length > 0 && App.modoSelecionado) {
-        App.carregarQuizDemo();
-    }
-});
-observer.observe(document.getElementById('slideContainer'), { childList: true, subtree: true });
-
-// ========== INICIAR ==========
-document.addEventListener('DOMContentLoaded', () => {
+// ========== INICIAR QUANDO A PÁGINA CARREGAR ==========
+window.addEventListener('DOMContentLoaded', () => {
+    console.log('📄 DOM carregado, iniciando App...');
     App.init();
-    console.log('🎮 Apresentação pronta!');
 });
+
+// Expor o App globalmente
+window.App = App;
